@@ -1,0 +1,8 @@
+{
+	"name": "emailwizard",
+	"version": "1.0.0",
+	"description": "Build and manage expert-level email templates that work in every inbox.",
+	"scripts": {
+		"build": "concat -o assets/js/bundle.js node_modules/select2/dist/js/select2.min.js node_modules/sweetalert2/dist/sweetalert2.all.min.js node_modules/tinymce/tinymce.min.js assets/js/wizard-functions.js assets/js/wizard-common.js assets/js/bulk-actions.js assets/js/wizard-folders.js assets/js/wizard-template-actions.js assets/js/wizard-template-builder.js assets/js/wizard-tinymce.js assets/js/folders-init.js assets/js/wizard-forms.js"
+	}
+}

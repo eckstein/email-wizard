@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+
+# Built assets
+assets/js/bundle.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+*.swp
+*.swo
+.vscode/
+
+# WordPress specific
+*.sql
+*.tar.gz
+*.zip
+
+# PHP
+vendor/
+
+# Temporary files
+tmp/
+temp/
