@@ -1,0 +1,10 @@
+.swal-with-folder-select .swal2-actions {
+    z-index: 0;
+}
+.swal-with-folder-select .swal2-html-container {
+    display: flex!important;
+	overflow:visible!important;
+}
+.swal-with-folder-select .nice-select.swal2-input { 
+    min-width: 250px;
+}

@@ -1,0 +1,4 @@
+/* Import external library css */
+@import '../../node_modules/sweetalert2/dist/sweetalert2.min.css';
+@import "../../node_modules/nice-select2/dist/css/nice-select2.css";
+@import "./swal2.css";

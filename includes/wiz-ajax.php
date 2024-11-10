@@ -20,9 +20,9 @@ function process_custom_wiz_request()
         wp_send_json_error('Invalid request method');
     }
 
-    // Verify nonce for security
-    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'wizard_security')) {
-        wp_send_json_error('Security check failed');
+    // Verify the nonce
+    if (!check_ajax_referer('wizard_security', 'nonce', false)) {
+        wp_send_json_error('Invalid nonce');
     }
 
     // Get the action

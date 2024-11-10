@@ -25,8 +25,11 @@ foreach ( glob( plugin_dir_path( __FILE__ ) . 'admin/*.php' ) as $file ) {
 }
 
 // Non-Wp-Admin dependencies
-foreach ( glob( plugin_dir_path( __FILE__ ) . 'includes/*.php' ) as $file ) {
-	include_once $file;
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(plugin_dir_path(__FILE__) . 'includes'));
+foreach ($iterator as $file) {
+	if ($file->isFile() && $file->getExtension() === 'php') {
+		include_once $file->getPathname();
+	}
 }
 
 // Enqueue scripts and styles
@@ -38,10 +41,9 @@ function email_wizard_activate() {
 	// Custom post types and taxonomies
 	init_wizard_post_types();
 	init_wizard_taxonomies();
-	init_wizard_wp_templates();
 
 	// Custom databases
-	create_wiz_templates_table();
+	create_wizard_tables();
 
 	// Custom ajax endpoint
 	wiz_add_custom_endpoint();

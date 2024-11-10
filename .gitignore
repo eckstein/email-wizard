@@ -29,3 +29,8 @@ vendor/
 # Temporary files
 tmp/
 temp/
+
+# Other
+.parcel-cache/
+eslint.config.mjs
+.gitignore
