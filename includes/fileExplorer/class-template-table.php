@@ -13,10 +13,11 @@ class WizardTemplateTable
 
     public function __construct($current_user_id, $folder_id, $args = [])
     {
+        $this->user_id = $current_user_id ?? get_current_user_id();
         $teams = new WizardTeams();
-        $active_team = $teams->get_active_team($current_user_id);
-        $this->user_folders = new WizardFolders($current_user_id, $active_team);
-        $this->user_id = get_current_user_id();
+        $active_team = $teams->get_active_team($this->user_id);
+        $this->user_folders = new WizardFolders($this->user_id, $active_team);
+        
         $this->folder_id = $folder_id;
         $this->team_id = $active_team;
         $this->template_archive_link = get_post_type_archive_link('wiz_template');
@@ -174,11 +175,6 @@ class WizardTemplateTable
         return ob_get_clean();
     }
 
-    private function has_search_results()
-    {
-        global $wp_query;
-        return $wp_query->found_posts > 0;
-    }
 
     /**
      * Renders all or part of the template table based on the requested part.
@@ -551,8 +547,10 @@ class WizardTemplateTable
 
         ob_start();
 
-        // Always show pagination controls at top
-        echo $this->render_pagination($page, $max_pages, $total_templates, $per_page);
+         // Hide pagination if there are no results or if folder is empty
+        if ($total_templates > 0) {
+            echo $this->render_pagination($page, $max_pages, $total_templates, $per_page);
+        }
 
         // No results message
         if (empty($templates) && $page === 1) {
@@ -581,7 +579,6 @@ class WizardTemplateTable
                 echo '<div class="wizard-message-wrapper">';
                 echo '<i class="fa-regular fa-folder-open"></i>';
                 echo '<p>No templates or folders here!</p>';
-                echo '<p class="wizard-message-subtitle">Create a new template or folder to get started</p>';
                 echo '</div>';
                 echo '</td>';
                 echo '</tr>';
@@ -593,8 +590,10 @@ class WizardTemplateTable
             }
         }
 
-        // Always show pagination controls at bottom
-        echo $this->render_pagination($page, $max_pages, $total_templates, $per_page);
+        // Hide pagination if there are no results or if folder is empty
+        if ($total_templates > 0) {
+            echo $this->render_pagination($page, $max_pages, $total_templates, $per_page);
+        }
 
         return ob_get_clean();
     }
@@ -675,7 +674,7 @@ class WizardTemplateTable
         $subfolder = $this->user_folders->get_folder($folder_id);
 
         $teams = new WizardTeams();
-        $active_team = $teams->get_active_team(get_current_user_id());
+        $active_team = $teams->get_active_team($this->user_id);
         $folderClass = 'wizard-folder-row';
         if (isset($subfolder['team_id']) && $subfolder['team_id'] == $active_team) {
             $folderClass .= ' team-folder';
