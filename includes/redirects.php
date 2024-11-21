@@ -16,6 +16,27 @@ add_action( 'template_redirect', 'wizard_custom_redirects' );
 function wizard_custom_redirects() {
 	global $wp_query, $wp;
 
+	// Handle template archive and search within templates
+	if (is_search() && isset($_GET['post_type']) && $_GET['post_type'] === 'wiz_template') {
+		// Redirect search to template archive with search parameter
+		$archive_url = get_post_type_archive_link('wiz_template');
+		$search_query = get_search_query();
+		$redirect_url = add_query_arg([
+			's' => $search_query,
+			'post_type' => 'wiz_template'
+		], $archive_url);
+		
+		// Preserve other query parameters
+		foreach ($_GET as $key => $value) {
+			if (!in_array($key, ['s', 'post_type'])) {
+				$redirect_url = add_query_arg($key, $value, $redirect_url);
+			}
+		}
+
+		wp_redirect($redirect_url);
+		exit;
+	}
+
 	// Check if we're on the specific template page and the folder_id is set
 	if (is_archive() && isset($_GET['folder_id'])) {
 		$folder_id = $_GET['folder_id'];
@@ -90,5 +111,17 @@ function filter_nav_menu_items_by_css_class( $items, $args ) {
 	return $items;
 }
 add_filter( 'wp_nav_menu_objects', 'filter_nav_menu_items_by_css_class', 10, 3 );
+
+
+
+// Add this after your existing redirect function
+add_filter('template_include', 'wizard_template_search_template');
+function wizard_template_search_template($template) {
+    if (is_search() && isset($_GET['post_type']) && $_GET['post_type'] === 'wiz_template') {
+        // Use the archive template for template searches
+        return get_archive_template();
+    }
+    return $template;
+}
 
 

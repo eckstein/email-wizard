@@ -9,38 +9,61 @@ function create_wizard_tables()
     // Create wiz_templates table
     $table_name = $wpdb->prefix . 'wiz_templates';
     $sql = "CREATE TABLE $table_name (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
         post_id bigint(20) UNSIGNED NOT NULL,
-        user_id bigint(20) UNSIGNED NOT NULL,
-        last_updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        status varchar(20) NOT NULL DEFAULT 'active',
         template_data longtext NOT NULL,
-        PRIMARY KEY (post_id),
-        INDEX user_id (user_id)
+        PRIMARY KEY (id),
+        UNIQUE KEY post_id (post_id)
     ) $charset_collate;";
     dbDelta($sql);
-
     // Teams table
     $table_name = $wpdb->prefix . 'teams';
     $sql = "CREATE TABLE $table_name (
-        id INT NOT NULL AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY  (id)
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        name varchar(255) NOT NULL,
+        description text,
+        created_by bigint(20) UNSIGNED NOT NULL,
+        status varchar(20) NOT NULL DEFAULT 'active',
+        created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+        updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX created_by (created_by),
+        INDEX status (status)
+    ) $charset_collate;";
+    dbDelta($sql);
+
+    // Team members table
+    $table_name = $wpdb->prefix . 'team_members';
+    $sql = "CREATE TABLE $table_name (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        team_id bigint(20) NOT NULL,
+        user_id bigint(20) UNSIGNED NOT NULL,
+        role varchar(50) NOT NULL DEFAULT 'member',
+        status varchar(20) NOT NULL DEFAULT 'active',
+        created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+        updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_membership (team_id, user_id),
+        INDEX team_id (team_id),
+        INDEX user_id (user_id),
+        INDEX status (status)
     ) $charset_collate;";
     dbDelta($sql);
 
     // User folders table 
     $table_name = $wpdb->prefix . 'user_folders';
     $sql = "CREATE TABLE $table_name (
-        id INT NOT NULL AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        parent_id INT,
-        created_by INT,
-        team_id INT,        
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        KEY team_id_idx (team_id),
-        PRIMARY KEY  (id)
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        name varchar(255) NOT NULL,
+        parent_id bigint(20),
+        created_by bigint(20) UNSIGNED NOT NULL,
+        team_id bigint(20),        
+        created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+        updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX team_id_idx (team_id),
+        INDEX created_by (created_by),
+        INDEX parent_id (parent_id)
     ) $charset_collate;";
     dbDelta($sql);
 
@@ -54,35 +77,3 @@ function create_wizard_tables()
 }
 
 register_activation_hook(__FILE__, 'create_wizard_tables');
-
-// Save, check, and update the database schema to avoid having to deaticate/reactive the plugin for schema changes
-add_action('plugins_loaded', 'check_and_update_db_schema');
-function check_and_update_db_schema()
-{
-    $current_db_version = get_option('wizard_db_version', '0');
-
-    if (version_compare($current_db_version, '1.0', '<')) {
-        create_wizard_tables();
-    }
-
-    if (version_compare($current_db_version, '1.1', '<')) { // Call the "version_x_x function to update to the new scheme
-        update_to_version_1_1();
-    }
-
-    // Add more version checks as your schema evolves
-}
-
-// When we update the scheme, put the database changes inside here and rename the function to the proper version based on what we put above
-function update_to_version_1_1() 
-{
-    global $wpdb;
-
-    // Example: Add a new column to wp_user_folders
-    // $table_name = $wpdb->prefix . 'user_folders';
-    // $wpdb->query("ALTER TABLE $table_name ADD COLUMN description TEXT");
-
-    // update_option('wizard_db_version', '1.1');
-}
-
-
-

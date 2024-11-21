@@ -12,6 +12,6 @@ export {
 
 export {init_file_explorer} from "./fileExplorer-init";
 
-export { sort_templates } from "./table-sorting";
-
 export { move_items, delete_items, show_delete_confirm, show_restore_confirm } from "./common";
+
+export { templateTableAPI } from "./template-table-api";

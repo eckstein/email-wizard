@@ -12,7 +12,9 @@ class WizardFolders
         $this->wpdb = $wpdb;
         $this->table_name = $wpdb->prefix . 'user_folders';
         $this->user_id = $user_id;
-        $this->team_id = $team_id;
+        $teams = new WizardTeams();
+        $active_team = $teams->get_active_team($user_id);
+        $this->team_id = $team_id ?? $active_team;
     }
 
     public function add_folder($folder_name, $parent_id = null)
@@ -23,7 +25,7 @@ class WizardFolders
             'created_by' => $this->user_id,
             'team_id' => $this->team_id,
         );
-
+        
         $result = $this->wpdb->insert($this->table_name, $data, array('%s', '%d', '%d', '%d', '%s'));
 
         if ($result === false) {
@@ -35,7 +37,7 @@ class WizardFolders
 
     public function get_folders($exclude = [])
     {
-        $query = "SELECT * FROM {$this->table_name} WHERE (created_by = %d OR team_id = %d) ";
+        $query = "SELECT * FROM {$this->table_name} WHERE (created_by = %d AND team_id = %d) ";
         $params = [$this->user_id, $this->team_id];
 
         if (!empty($exclude)) {
@@ -47,12 +49,31 @@ class WizardFolders
         return $this->wpdb->get_results($this->wpdb->prepare($query, $params), ARRAY_A);
     }
     
-    public function edit_folder($folder_id, $attributes)
-    {
-        // Check if the folder belongs to the user or their team
+    /**
+     * Validates if the current user has access to the specified folder
+     *
+     * @param int $folder_id The ID of the folder to validate
+     * @return array|WP_Error Folder data if accessible, WP_Error if not
+     */
+    private function validate_folder_access($folder_id) {
         $folder = $this->get_folder($folder_id);
         if (!$folder) {
-            return new WP_Error('permission_denied', 'You do not have permission to edit this folder');
+            return new WP_Error('permission_denied', 'You do not have permission to access this folder');
+        }
+        return $folder;
+    }
+
+    /**
+     * Edits a folder's attributes
+     *
+     * @param int $folder_id The ID of the folder to edit
+     * @param array $attributes Array of attributes to update
+     * @return true|WP_Error True on success, WP_Error on failure
+     */
+    public function edit_folder($folder_id, $attributes) {
+        $folder = $this->validate_folder_access($folder_id);
+        if (is_wp_error($folder)) {
+            return $folder;
         }
 
         $update_data = array();
@@ -70,7 +91,6 @@ class WizardFolders
             $update_data['team_id'] = intval($attributes['team_id']);
             $update_format[] = '%d';
         }
-
 
         if (empty($update_data)) {
             return new WP_Error('no_changes', 'No valid changes provided');
@@ -91,75 +111,89 @@ class WizardFolders
         return true;
     }
 
-    public function get_subfolder_ids($parent_id, $recursive = true)
-    {
-        $subfolder_ids = array();
+    /**
+     * Gets subfolders for a given parent folder
+     *
+     * @param int|string $parent_id The ID of the parent folder or 'root'
+     * @param bool $recursive Whether to get subfolders recursively
+     * @param bool $ids_only Whether to return only folder IDs instead of full folder data
+     * @return array Array of folder data or folder IDs
+     */
+    private function get_subfolder_data($parent_id, $recursive = true, $ids_only = false) {
+        $select = $ids_only ? 'id' : '*';
         
-        // Handle "root" case by looking for NULL parent_id
-        $where_clause = $parent_id === "root" 
-            ? "parent_id IS NULL OR parent_id = 0" 
-            : "parent_id = %d";
-        
-        $query = $this->wpdb->prepare(
-            "SELECT id FROM {$this->table_name} WHERE {$where_clause} AND (created_by = %d OR team_id = %d) ",
-            ...($parent_id === "root" ? [$this->user_id, $this->team_id] : [$parent_id, $this->user_id, $this->team_id])
-        );
-
-        $results = $this->wpdb->get_results($query, ARRAY_A);
-
-        foreach ($results as $row) {
-            $subfolder_ids[] = $row['id'];
-            if ($recursive) {
-                $subfolder_ids = array_merge(
-                    $subfolder_ids,
-                    $this->get_subfolder_ids($row['id'], $recursive)
-                );
-            }
-        }
-
-        return array_unique($subfolder_ids);
-    }
-
-    public function get_subfolders($parent_id, $recursive = true) {
-        $subfolders = array();
-
         // Handle "root" case by looking for NULL parent_id
         $where_clause = $parent_id === "root"
-            ? "parent_id IS NULL OR parent_id = 0"
+            ? "(parent_id IS NULL OR parent_id = 0)"
             : "parent_id = %d";
 
         $query = $this->wpdb->prepare(
-            "SELECT * FROM {$this->table_name} WHERE {$where_clause} AND (created_by = %d OR team_id = %d)",
-            ...($parent_id === "root" ? [$this->user_id, $this->team_id] : [$parent_id, $this->user_id, $this->team_id])
+            "SELECT {$select} FROM {$this->table_name} 
+             WHERE {$where_clause} AND (created_by = %d AND team_id = %d)",
+            ...($parent_id === "root" 
+                ? [$this->user_id, $this->team_id] 
+                : [$parent_id, $this->user_id, $this->team_id])
         );
+
         $results = $this->wpdb->get_results($query, ARRAY_A);
+        
+        if (!$recursive) {
+            return $ids_only ? array_column($results, 'id') : $results;
+        }
+
+        $all_results = $results;
         foreach ($results as $row) {
-            $subfolders[] = $row;
-            if ($recursive) {
-                $subfolders = array_merge(
-                    $subfolders,
-                    $this->get_subfolders($row['id'], $recursive)
-                );
+            $child_results = $this->get_subfolder_data($row['id'], true, $ids_only);
+            if (!empty($child_results)) {
+                $all_results = array_merge($all_results, $child_results);
             }
         }
-        return $subfolders;
+
+        return $ids_only ? array_unique(array_column($all_results, 'id')) : $all_results;
+    }
+
+    /**
+     * Gets all subfolder IDs for a given parent folder
+     *
+     * @param int|string $parent_id The ID of the parent folder or 'root'
+     * @param bool $recursive Whether to get subfolder IDs recursively
+     * @return array Array of folder IDs
+     */
+    public function get_subfolder_ids($parent_id, $recursive = true) {
+        return $this->get_subfolder_data($parent_id, $recursive, true);
+    }
+
+    /**
+     * Gets all subfolders for a given parent folder
+     *
+     * @param int|string $parent_id The ID of the parent folder or 'root'
+     * @param bool $recursive Whether to get subfolders recursively
+     * @return array Array of folder data
+     */
+    public function get_subfolders($parent_id, $recursive = true) {
+        return $this->get_subfolder_data($parent_id, $recursive, false);
     }
 
     public function get_folder($folder_id)
     {
         return $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT * FROM {$this->table_name} WHERE id = %d AND (created_by = %d OR team_id = %d)",
+            "SELECT * FROM {$this->table_name} WHERE id = %d AND (created_by = %d AND team_id = %d)",
             $folder_id,
             $this->user_id,
             $this->team_id
         ), ARRAY_A);
     }
 
-    public function delete_folder($folder_id)
-    {
-        $folder = $this->get_folder($folder_id);
-        if (!$folder) {
-            return new WP_Error('permission_denied', 'You do not have permission to delete this folder');
+    /**
+     * Deletes a folder and moves its subfolders to the parent folder
+     *
+     * @param int $folder_id The ID of the folder to delete
+     * @return true|WP_Error True on success, WP_Error on failure
+     */
+    public function delete_folder($folder_id) {
+        $folder = $this->validate_folder_access($folder_id);
+        if (is_wp_error($folder)) {
+            return $folder;
         }
 
         // Get the parent folder ID
@@ -228,44 +262,11 @@ class WizardFolders
         return $path;
     }
 
-    public function get_templates_in_folder($folder_id, $recursive = false) {
-        // Get templates in current folder
-        $args = array(
-            'post_type' => 'wiz_template',
-            'posts_per_page' => -1,
-            'meta_query' => array(
-                array(
-                    'key' => 'wizard_folder',
-                    'value' => $folder_id,
-                    'compare' => '='
-                )
-            )
-        );
-        
-        $query = new WP_Query($args);
-        $templates = $query->posts;
-
-        // If recursive, get templates from all subfolders
-        if ($recursive) {
-            $subfolders = $this->get_subfolders($folder_id, true);
-            foreach ($subfolders as $subfolder) {
-                $subfolder_args = array(
-                    'post_type' => 'wiz_template',
-                    'posts_per_page' => -1,
-                    'meta_query' => array(
-                        array(
-                            'key' => 'wizard_folder',
-                            'value' => $subfolder['id'],
-                            'compare' => '='
-                        )
-                    )
-                );
-                
-                $subfolder_query = new WP_Query($subfolder_args);
-                $templates = array_merge($templates, $subfolder_query->posts);
-            }
-        }
-
-        return $templates;
+    public function get_templates_in_folder($folder_id, $recursive = false)
+    {
+        $template_manager = new WizardTemplates();
+        return $template_manager->get_templates_by_folders($folder_id, [
+            'recursive' => $recursive
+        ]);
     }
 }

@@ -13,8 +13,12 @@ import {
 	saveTemplateFormData,
 	restore_templates,
 	delete_templates_forever,
-	sort_templates,
-	init_template_search
+	init_team_handler,
+	handleNewTeam,
+	show_create_team_dialog,
+	createTeamRequest,
+	switch_team,
+	templateTableAPI
 } from "./components";
 
 import {
@@ -25,11 +29,14 @@ import {
 	addEventListenerIfExists,
 	highlight_element,
 	wiz_toast,
+	checkUrlParamsForToasts,
 	switch_wizard_tab,
 	init_editable_folder_titles,
 	handleFetchError,
 	handleHTTPResponse,
 	show_success_toast,
 	show_error_toast,
-	highlight_and_remove
+	highlight_and_remove,
+	init_slideover,
+	remove_url_parameter,
 } from "./utils";

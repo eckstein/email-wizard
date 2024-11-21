@@ -2,19 +2,18 @@ import Swal from "sweetalert2";
 import { addEventListenerIfExists } from "../../utils/functions.js";
 import {
 	highlight_element,
-	handleFetchError,
 	handleHTTPResponse,
 	show_error_toast,
 	show_success_toast,
-	highlight_and_remove,
 } from "../../utils/functions.js";
 
 import {
-	move_single_item,
-	delete_item_from_server,
-	remove_item_from_ui,
-	show_delete_item_confirm,
+	remove_item_from_ui
 } from "./common.js";
+
+import { templateTableAPI } from "./template-table-api.js";
+
+import { init_file_explorer } from "./fileExplorer-init.js";
 
 export {
 	create_single_template,
@@ -64,14 +63,25 @@ function init_template_actions() {
 							preConfirm: () => {
 								return new Promise((resolve) => {
 									window.location.href = permalink;
-									// This resolve will never be called because we're navigating away
 									resolve();
 								});
 							},
 						}).then((result) => {
 							if (result.dismiss === Swal.DismissReason.cancel) {
-								// User clicked "Stay here"
-								//window.location.reload();
+								// Remove empty state if it exists
+								templateTableAPI.removeEmptyState();
+								
+								// Get and add the new template row
+								get_template_row_html(template_id)
+									.then(data => {
+										if (data.success && data.data) {
+											add_template_to_table(data.data.html);
+										}
+									})
+									.catch(error => {
+										console.error('Error getting template row:', error);
+										show_error_toast('Failed to update template list');
+									});
 							}
 						});
 					})
@@ -217,11 +227,11 @@ function delete_templates_forever(templates) {
 		
 	
 
-function get_template_row_html(templateId) {
+async function get_template_row_html(templateId) {
 	const urlParams = new URLSearchParams(window.location.search);
 	const args = {};
 
-	return fetch(wizard.ajaxurl, {
+	const response = await fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded",
@@ -235,13 +245,26 @@ function get_template_row_html(templateId) {
 			item_id: templateId,
 			args: JSON.stringify(args),
 		}),
-	}).then(handleHTTPResponse);
+	});
+	return handleHTTPResponse(response);
 }
 
 function add_template_to_table(html) {
-	let folderTable = document.querySelector(".wizard-folders-table tbody.templates");
-	folderTable.insertAdjacentHTML("beforeend", html.trim());
-	const newRow = folderTable.lastElementChild;
+	let templatesTable = document.querySelector(".wizard-folders-table tbody.templates");
+	
+	if (!templatesTable) {
+		const table = document.querySelector(".wizard-folders-table");
+		templatesTable = document.createElement('tbody');
+		templatesTable.className = 'templates';
+		table.appendChild(templatesTable);
+	}
+
+	// Remove empty state if it exists
+	templateTableAPI.removeEmptyState();
+	
+	templatesTable.insertAdjacentHTML("beforeend", html.trim());
+	const newRow = templatesTable.lastElementChild;
+	
 	if (newRow && newRow.tagName === "TR") {
 		init_file_explorer();
 		show_success_toast("Template created successfully");

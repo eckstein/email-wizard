@@ -1,5 +1,48 @@
 <?php
 
+/**
+ * Register template trash/restore hooks
+ */
+function register_template_trash_hooks()
+{
+    add_action('wp_trash_post', 'handle_template_trashed');
+    add_action('untrashed_post', 'handle_template_restored');
+}
+add_action('init', 'register_template_trash_hooks');
+
+if (!function_exists('handle_template_trashed')) {
+    function handle_template_trashed($post_id) {
+        // Only proceed if this is a template post type
+        if (get_post_type($post_id) !== 'wiz_template') {
+            return;
+        }
+        
+        $wizard = new WizardTemplates();
+        $wizard->handle_template_trashed($post_id);
+    }
+}
+
+if (!function_exists('handle_template_restored')) {
+    function handle_template_restored($post_id) {
+        // Only proceed if this is a template post type
+        if (get_post_type($post_id) !== 'wiz_template') {
+            return;
+        }
+        
+        $wizard = new WizardTemplates();
+        $wizard->handle_template_restored($post_id);
+    }
+}
+
+// Remove any existing hooks first to prevent duplicates
+remove_action('wp_trash_post', ['WizardTemplates', 'handle_template_trashed']);
+remove_action('untrashed_post', ['WizardTemplates', 'handle_template_restored']);
+
+// Add our hooks using the static class methods directly
+add_action('wp_trash_post', ['WizardTemplates', 'handle_template_trashed']);
+add_action('untrashed_post', ['WizardTemplates', 'handle_template_restored']);
+
+// Handle ajax requests 
 add_action('wiz_ajax_restore_trashed_templates', 'restore_trashed_templates_ajax');
 function restore_trashed_templates_ajax()
 {
@@ -83,39 +126,6 @@ function delete_templates_forever($template_ids)
 
 
 
-// Add folder on ajax request
-add_action('wiz_ajax_add_wizard_user_folder', 'ajax_add_wizard_user_folder');
-function ajax_add_wizard_user_folder()
-{
-
-    // Check if the parent ID is provided
-    if (! isset($_POST['parent_id'])) {
-        wp_send_json_error('Folder creation failed: parent folder not found');
-    }
-
-    // Check if the folder name is provided
-    if (! isset($_POST['folder_name'])) {
-        wp_send_json_error('Folder creation failed: no folder name provided');
-    }
-
-    // Sanitize the input data
-    $parent_id = sanitize_text_field($_POST['parent_id']);
-    if ($parent_id == 'root') {
-        $parent_id = null;
-    }
-    $folder_name = sanitize_text_field($_POST['folder_name']);
-
-    // Get the current user ID
-    $user_id = get_current_user_id();
-
-    // Add the new folder
-    $folderManager = new WizardFolders($user_id);
-    $newFolderId = $folderManager->add_folder($folder_name, $parent_id);
-
-    // Send a success response with the new folder ID
-    wp_send_json_success(['folder_id' => $newFolderId]);
-}
-
 function create_new_template_ajax()
 {
     $wizard = new WizardTemplates();
@@ -143,21 +153,6 @@ function ajax_duplicate_wizard_template()
 }
 add_action('wiz_ajax_duplicate_wizard_template', 'ajax_duplicate_wizard_template');
 
-function ajax_search_wiz_templates()
-{
-    if (!isset($_POST['term'])) {
-        wp_send_json_error('Term not provided');
-    }
 
-    $templateManager = new WizardTemplates();
-    $term = sanitize_text_field($_POST['term']);
-    $folderIds = isset($_POST['folderIds']) ? json_decode(stripslashes($_POST['folderIds']), true) : ['root'];
-    $results = $templateManager->search_templates($term, $folderIds);
 
-    if (!empty($results)) {
-        wp_send_json_success($results);
-    } else {
-        wp_send_json_error('No results found');
-    }
-}
-add_action('wiz_ajax_search_wiz_templates', 'ajax_search_wiz_templates');
+

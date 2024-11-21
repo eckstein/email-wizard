@@ -18,7 +18,6 @@ function email_wizard_localize_script_bundle()
 };
 function email_wizard_localize_script($scriptName)
 {
-	$nonce = wp_create_nonce('wizard_security');
 	$currentUser = wp_get_current_user();
 	$currentUserId = get_current_user_id();
 	$folderHandler = new WizardFolders($currentUserId);
@@ -26,6 +25,13 @@ function email_wizard_localize_script($scriptName)
 	$folder_id = isset($_GET['folder_id']) ? sanitize_text_field($_GET['folder_id']) : 'root';
 	$subFolderIds = $folderHandler->get_subfolder_ids($folder_id, false);
 	$recursiveSubFolderIds = $folderHandler->get_subfolder_ids($folder_id, true);
+
+	$teamsHandler = new WizardTeams();
+	$currentUserTeam = $teamsHandler->get_active_team($currentUserId);
+	$currentTeamName = $teamsHandler->get_active_team_name($currentUserId);
+
+	$nonce = wp_create_nonce('wizard_security_'.$currentUserTeam);
+
 	$localized_data = array(
 		'nonce' => $nonce,
 		'ajaxurl' => home_url('/wiz-ajax/'),
@@ -39,6 +45,8 @@ function email_wizard_localize_script($scriptName)
 		'current_user_folders' => $userFolders,
 		'subfolder_ids' => $subFolderIds,
 		'recursive_subfolder_ids' => $recursiveSubFolderIds,
+		'active_team' => $currentUserTeam,
+		'active_team_name' =>  $currentTeamName
 	);
 	wp_localize_script($scriptName, 'wizard', $localized_data);
 }

@@ -1,6 +1,3 @@
-// file-explorer.js
-
-import Swal from "sweetalert2";
 import { create_new_wizard_folder, open_folder_title_editor, select_folder } from "./folders.js";
 import {
 	duplicate_single_template,
@@ -8,40 +5,45 @@ import {
 	delete_templates_forever,
 } from "./templates.js";
 import { move_items, delete_items, show_delete_confirm, show_restore_confirm } from "./common.js";
-import { init_template_search } from "./template-search.js";
-import { sort_templates } from "./table-sorting.js";
 import {
 	addEventListenerIfExists,
 	show_error_toast,
 	show_success_toast,
 } from "../../utils/functions.js";
 
+import { handleNewTeam } from "../teams/teams-actions.js";
+import { initSearch } from "./search.js";
+import { initPaginationControls } from './pagination.js';
+
 export function init_file_explorer() {
 	setupEventListeners();
 	setupBulkActions();
+	initSearch();
+	initPaginationControls();
 }
 
 // Initialize file explorer when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
 	init_file_explorer();
-	init_template_search();
+	initSearch();
 });
 
 function setupEventListeners() {
 	addEventListenerIfExists(".create-folder", "click", handleCreateFolder);
 	document.addEventListener("click", handleGlobalClick);
-	document.addEventListener("click", handleSortingClick);
 	addEventListenerIfExists(".edit-folder-title", "click", handleEditFolderTitle);
 }
 
 function setupBulkActions() {
 	addEventListenerIfExists(".wizard-table-bulk-check > input", "change", handleBulkCheckChange);
 	addEventListenerIfExists(
-		".wizard-table-bulk-check-all > input",
+		".wizard-table-bulk-check-all",
 		"change",
 		handleBulkCheckAllChange
 	);
 }
+
+
 
 function handleCreateFolder() {
 	create_new_wizard_folder(wizard.current_folder_id);
@@ -75,6 +77,7 @@ function handleGlobalClick(event) {
 		"#restore-selected": handleRestoreSelected,
 		"#delete-selected-forever": handleDeleteSelectedForever,
 		".duplicate-template": handleDuplicateTemplate,
+		".new-team": handleNewTeam,
 	};
 
 	for (const [selector, handler] of Object.entries(handlers)) {
@@ -173,16 +176,6 @@ function handleDuplicateTemplate(event) {
 		return;
 	}
 	duplicate_single_template(templateId);
-}
-
-function handleSortingClick(event) {
-	const header = event.target.closest(".wizard-table-col-header.sortable");
-	if (header) {
-		const sortBy = header.getAttribute("data-sort-by");
-		const currentSort = header.getAttribute("data-sort") || "DESC";
-		const newSort = currentSort === "ASC" ? "DESC" : "ASC";
-		sort_templates(sortBy, newSort);
-	}
 }
 
 function handleBulkCheckChange(event) {

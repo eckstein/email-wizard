@@ -6,6 +6,8 @@ import {
 	handleFetchError,
 } from "../../utils/functions";
 
+import { templateTableAPI } from "./template-table-api.js";
+
 export { move_items, delete_items, show_delete_confirm, show_restore_confirm, remove_item_from_ui };
 
 async function perform_action(action_type, items) {
@@ -88,7 +90,6 @@ async function move_items(items, newParentId) {
 
 		if (totalMoved > 0) {
 			items.forEach((item) => {
-				console.log("Checking item:", item);
 				if (
 					(item.dataset.type === "template" &&
 						movedTemplates.includes(Number(item.value))) ||
@@ -148,12 +149,7 @@ async function delete_items(items) {
 			const totalDeleted = deletedTemplates.length + deletedFolders.length;
 			if (totalDeleted > 0) {
 				items.forEach((item) => {
-					if (
-						(item.dataset.type === "template" &&
-							deletedTemplates.includes(Number(item.value))) ||
-						(item.dataset.type === "folder" &&
-							deletedFolders.includes(Number(item.value)))
-					) {
+					if ((item.dataset.type === "template" && deletedTemplates.includes(Number(item.value))) || (item.dataset.type === "folder" && deletedFolders.includes(Number(item.value)))) {
 						remove_item_from_ui(item.value, item.dataset.type);
 					} else {
 						console.log("Item not found in deleted items:", item);
@@ -215,9 +211,14 @@ function show_restore_confirm(templateIds) {
 	});
 }
 
-function remove_item_from_ui(itemId, itemType) {
-	const itemElement = document.querySelector(`#${itemType}-${itemId}`);
-	if (itemElement) {
-		highlight_and_remove(itemElement);
+function remove_item_from_ui(itemId, type) {
+	const row = document.getElementById(`${type}-${itemId}`);
+	if (row) {
+		highlight_and_remove(row);
+		
+		// After removing, check if we need to show the empty state
+		setTimeout(() => {
+			templateTableAPI.handleEmptyState();
+		}, 500); // Wait for the removal animation to complete
 	}
 }

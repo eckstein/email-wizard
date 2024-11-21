@@ -7,12 +7,11 @@ function ajax_generate_template_table_part()
     $current_folder = isset($_POST['current_folder']) ? sanitize_text_field($_POST['current_folder']) : '';
     $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
     $item_id = isset($_POST['item_id']) ? sanitize_text_field($_POST['item_id']) : null;
-    $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
-    $folder_ids = isset($_POST['folder_ids']) ? json_decode(stripslashes($_POST['folder_ids']), true) : [];
+    
+    // Get args from POST and decode
     $args = isset($_POST['args']) ? json_decode(stripslashes($_POST['args']), true) : [];
-
-    $args['search_term'] = $search_term;
-    $args['folder_ids'] = $folder_ids;
+    
+    error_log('Received search args: ' . print_r($args, true));
 
     $result = generate_template_table_part($part, $current_folder, $user_id, $item_id, $args);
 

@@ -9,12 +9,18 @@ export {
 	move_items,
 	delete_items,
 	show_delete_confirm,
-	show_restore_confirm
+	show_restore_confirm,
+	templateTableAPI
 } from "./fileExplorer";
 
 export { restore_templates, delete_templates_forever } from "./fileExplorer/templates";
 
 export {saveTemplateFormData} from "./editor";
 
-export { init_template_search} from "./fileExplorer/template-search";
-export { sort_templates } from "./fileExplorer/table-sorting";
+export {
+	init_team_handler,
+	handleNewTeam,
+	show_create_team_dialog,
+	createTeamRequest,
+	switch_team
+} from "./teams/teams-actions";

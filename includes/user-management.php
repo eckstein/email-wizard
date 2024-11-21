@@ -25,11 +25,20 @@ add_action( 'init', 'create_wizard_user_role' );
 add_action('user_register', 'wizard_user_register_actions');
 function wizard_user_register_actions($user_id) {
 	set_new_user_as_wizard($user_id);
+	create_default_user_team($user_id);
 }
 
 function set_new_user_as_wizard( $user_id ) {
 	$user = new WP_User( $user_id );
 	$user->set_role( 'wizard_user' );
+}
+function create_default_user_team($user_id) {
+	$teamsManager = new WizardTeams();
+	$newTeamId = $teamsManager->create_team(['name' => 'My Team', 'created_by' => $user_id]);
+	// Set user as admin role
+	$teamsManager->add_team_member($newTeamId, $user_id, 'admin');
+	// Set new team as active team
+	$teamsManager->switch_active_team($user_id, $newTeamId);
 }
 
 //Keep wizard users out of admin

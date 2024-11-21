@@ -1,4 +1,41 @@
 <?php
+
+
+
+// Add folder on ajax request
+add_action('wiz_ajax_add_wizard_user_folder', 'ajax_add_wizard_user_folder');
+function ajax_add_wizard_user_folder()
+{
+
+    // Check if the parent ID is provided
+    if (! isset($_POST['parent_id'])) {
+        wp_send_json_error('Folder creation failed: parent folder not found');
+    }
+
+    // Check if the folder name is provided
+    if (! isset($_POST['folder_name'])) {
+        wp_send_json_error('Folder creation failed: no folder name provided');
+    }
+
+    // Sanitize the input data
+    $parent_id = sanitize_text_field($_POST['parent_id']);
+    if ($parent_id == 'root') {
+        $parent_id = null;
+    }
+    $folder_name = sanitize_text_field($_POST['folder_name']);
+
+    // Get the current user ID
+    $user_id = get_current_user_id();
+
+    // Add the new folder
+    $folderManager = new WizardFolders($user_id);
+    $newFolderId = $folderManager->add_folder($folder_name, $parent_id);
+
+    // Send a success response with the new folder ID
+    wp_send_json_success(['folder_id' => $newFolderId]);
+}
+
+
 add_action('wiz_ajax_handle_template_folder_action', 'handle_template_folder_action_ajax');
 
 function handle_template_folder_action_ajax()
@@ -269,17 +306,20 @@ function ajax_update_wizard_user_folder_name()
     wp_send_json_success($renameFolder);
 }
 
-
-// Potential async wrapper function
-function async_handle_template_folder_action($action_type, $items)
-{
-    wp_schedule_single_event(time(), 'do_async_template_folder_action', array($action_type, $items));
-
-    return [
-        'success' => true,
-        'message' => 'Action scheduled for asynchronous processing'
-    ];
+add_action('wiz_ajax_get_wizard_user_folders', 'ajax_get_wizard_user_folders');
+function ajax_get_wizard_user_folders() {
+    $exclude = isset($_POST['exclude']) ? json_decode(stripslashes($_POST['exclude']), true) : [];
+    $folders = get_wizard_user_folders($exclude);
+    if (is_wp_error($folders)) {
+        wp_send_json_error($folders->get_error_message());
+    }
+    wp_send_json_success($folders);
+}
+function get_wizard_user_folders($exclude = []) {
+    $user_id = get_current_user_id();
+    $user_folders = new WizardFolders($user_id);
+    $folders = $user_folders->get_folders($exclude);
+    return $folders;
 }
 
-// Action hook for the async operation
-add_action('do_async_template_folder_action', 'handle_template_folder_action', 10, 2);
+

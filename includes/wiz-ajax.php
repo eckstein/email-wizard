@@ -20,9 +20,12 @@ function process_custom_wiz_request()
         wp_send_json_error('Invalid request method');
     }
 
+    $teamManager = new WizardTeams();
+    $currentTeamId = $teamManager->get_active_team(get_current_user_id());
+
     // Verify the nonce
-    if (!check_ajax_referer('wizard_security', 'nonce', false)) {
-        wp_send_json_error('Invalid nonce');
+    if (!check_ajax_referer('wizard_security_'.$currentTeamId, 'nonce', false)) {
+        wp_send_json_error('Invalid security token passed. Active team may have been switched in another tab.');
     }
 
     // Get the action
