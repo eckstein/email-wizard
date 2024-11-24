@@ -1,0 +1,209 @@
+h3.wizard-form-section-title {
+	color: #343434;
+	padding: 10px 0;
+	margin-bottom: 10px;
+}
+.wizard-form-content {
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	padding: 30px;
+}
+.wizard-form-fieldgroup {
+	display: flex;
+	gap: 20px;
+	align-items: flex-start;
+}
+
+.wizard-form-fieldgroup-label {
+	flex: 1;
+	font-weight: 500;
+	color: #343434;
+	font-size: 14px;
+	padding-top: 15px;
+	text-align: right;
+}
+
+.wizard-form-fieldgroup-value {
+	flex: 3;
+	display: flex;
+}
+.wizard-form-fieldgroup-value textarea {
+	height: 10em;
+}
+.wizard-form-fieldgroup.checkbox .wizard-form-fieldgroup-value {
+	display: block;
+}
+.wizard-form-fieldgroup.checkbox-group .wizard-form-fieldgroup-value,
+.wizard-form-fieldgroup.radio-group .wizard-form-fieldgroup-value {
+	display: flex;
+	gap: 20px;
+}
+.wizard-form-fieldgroup.checkbox-group .wizard-form-fieldgroup-value label,
+.wizard-form-fieldgroup.radio-group .wizard-form-fieldgroup-value label {
+	display: flex;
+	gap: 5px;
+	align-items: center;
+}
+
+.wizard-form-fieldgroup-input {
+	font-family: "Andika", Arial, Helvetica, sans-serif;
+}
+
+.wizard-form-fieldgroup.checkbox input,
+.wizard-form-fieldgroup.radio input .wizard-form-fieldgroup select {
+	flex: 0;
+}
+.wizard-form-fieldgroup.checkbox .wizard-form-fieldgroup-label,
+.wizard-form-fieldgroup.checkbox-group .wizard-form-fieldgroup-label,
+.wizard-form-fieldgroup.radio .wizard-form-fieldgroup-label,
+.wizard-form-fieldgroup.radio-group .wizard-form-fieldgroup-label {
+	padding-top: 0;
+}
+
+.wizard-form-fieldgroup input[type="text"],
+.wizard-form-fieldgroup input[type="email"],
+.wizard-form-fieldgroup input[type="number"],
+.wizard-form-fieldgroup input[type="password"],
+.wizard-form-fieldgroup input[type="password"],
+.wizard-form-fieldgroup input[type="search"],
+.wizard-form-fieldgroup input[type="url"],
+.wizard-form-fieldgroup select,
+.wizard-form-fieldgroup textarea {
+	flex: 1;
+	padding: 10px 20px;
+	border: 0;
+	border-radius: 4px;
+	display: block;
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+	font-size: 16px;
+}
+.wizard-form-fieldgroup select {
+	appearance: none;
+	padding-right: 40px;
+	padding-left: 10px;
+	cursor: pointer;
+}
+
+.wizard-form-fieldgroup:has(select) {
+	position: relative;
+}
+.wizard-form-fieldgroup:has(select)::after {
+	font-family: "Font Awesome 6 Free";
+	content: "\f078"; /* Font Awesome chevron-down unicode */
+	font-weight: 900; /* Required for solid style */
+	position: absolute;
+	right: 20px;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+	font-size: 12px;
+	color: #666;
+}
+.wizard-form-fieldgroup input[type="text"]:focus-visible,
+.wizard-form-fieldgroup input[type="email"]:focus-visible,
+.wizard-form-fieldgroup input[type="number"]:focus-visible,
+.wizard-form-fieldgroup input[type="password"]:focus-visible,
+.wizard-form-fieldgroup input[type="password"]:focus-visible,
+.wizard-form-fieldgroup input[type="search"]:focus-visible,
+.wizard-form-fieldgroup input[type="url"]:focus-visible,
+.wizard-form-fieldgroup textarea:focus-visible {
+	border: 0;
+	outline: 1px solid #343434;
+}
+
+.wizard-form-fieldgroup input[type="checkbox"] {
+	accent-color: var(--teal);
+}
+.wizard-form-fieldgroup input[type="checkbox"],
+.wizard-form-fieldgroup input[type="radio"] {
+	width: 18px;
+	height: 18px;
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+}
+.wizard-form-fieldgroup input:disabled,
+.wizard-form-fieldgroup select:disabled,
+.wizard-form-fieldgroup textarea:disabled {
+	box-shadow: none;
+}
+
+.wizard-form-fieldgroup input[type="radio"]:disabled {
+	color: #666;
+}
+
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup-value {
+	display: block;
+}
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup label {
+	display: inline-block;
+	padding-bottom: 5px;
+	padding-top: 0;
+}
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup {
+	display: block;
+}
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup-value .repeater-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup-value .repeater-rows .repeater-row.flex {
+	display: flex;
+	gap: 10px;
+}
+.wizard-form-fieldgroup.repeater .wizard-form-fieldgroup .wizard-form-fieldgroup-input {
+	width: 100%;
+}
+
+.wizard-form-fieldgroup.repeater .remove-row {
+	align-self: center;
+	font-size: 20px;
+}
+
+.empty-repeater-message.hidden,
+.repeater-row-template {
+	display: none;
+}
+
+.wizard-form-fieldgroup input[type="radio"] {
+	/* Add if not using autoprefixer */
+	-webkit-appearance: none;
+	appearance: none;
+	/* For iOS < 15 to remove gradient background */
+	background-color: #fff;
+	/* Not removed via appearance */
+	margin: 0;
+
+	font: inherit;
+	color: currentColor;
+	width: 1.15em;
+	height: 1.15em;
+	border: 1px solid currentColor;
+	border-radius: 50%;
+	transform: translateY(-0.075em);
+
+	display: grid;
+	place-content: center;
+}
+
+.wizard-form-fieldgroup input[type="radio"]::before {
+	content: "";
+	width: 0.65em;
+	height: 0.65em;
+	border-radius: 50%;
+	transform: scale(0);
+	transition: 120ms transform ease-in-out;
+	box-shadow: inset 1em 1em var(--teal);
+}
+
+.wizard-form-fieldgroup input[type="radio"]:checked::before {
+	transform: scale(1);
+}
+
+.wizard-form-fieldgroup .field-description {
+	font-size: 12px;
+	color: #666;
+	font-style: italic;
+}

@@ -1,0 +1,51 @@
+#account-page-ui {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Messages */
+.wizard-message {
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    border-radius: 4px;
+}
+
+.wizard-message-success {
+    background: #e7f4e4;
+    color: #287d1e;
+    border-left: 4px solid #2e8b1f;
+}
+
+.wizard-message-error {
+    background: #fde8e8;
+    color: #c81e1e;
+    border-left: 4px solid #df1f1f;
+}
+
+
+/* Avatar Section Styling */
+.avatar-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.current-avatar img {
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+	align-items: flex-start;
+}
+
+.avatar-controls input[type="file"] {
+    display: none;
+}

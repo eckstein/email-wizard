@@ -7,7 +7,7 @@ function wizard_account_form_redirects() {
 
     // Check if form was submitted and successfully processed
     if (isset($_GET['account_updated']) && $_GET['account_updated'] === 'true') {
-        // Clear the URL parameter
+        // Clear the URL parameter to prevent resubmission
         wp_safe_redirect(remove_query_arg('account_updated'));
         exit;
     }

@@ -1,0 +1,141 @@
+/* root variables from theme stylesheet */
+/* :root {
+	--merrigold: hsl(37, 80%, 75%);
+	--merrigold-hover: hsl(37, 80%, 70%);
+	--teal: #81b29a;
+	--teal-hover: hsl(160, 35%, 45%);
+	--navy: #3d405b;
+	--navy-hover: hsl(234, 20%, 35%);
+	--brick: #e07a5f;
+	--brick-hover: hsl(13, 68%, 58%);
+	--cream: #f4f1de;
+	--cream-hover: hsl(52, 50%, 85%);
+	--pale-yellow: #ffffef;
+} */
+
+/* Buttons */
+.wizard-button {
+	font-family: "Andika", Arial, Helvetica, sans-serif;
+	background-color: var(--teal);
+	color: #fff;
+	padding: 6px 12px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	display: inline-block;
+	text-align: center;
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+	text-decoration: none;
+	text-shadow: 0 0 black;
+	font-weight: 500;
+}
+
+.wizard-button:hover {
+	background-color: var(--teal-hover);
+}
+
+.wizard-button.red {
+	background-color: var(--brick);
+}
+
+.wizard-button.red:hover {
+	background-color: var(--brick-hover);
+}
+
+.wizard-button.yellow {
+	background-color: var(--merrigold);
+}
+
+.wizard-button.yellow:hover {
+	background-color: var(--merrigold-hover);
+}
+
+.wizard-button:disabled,
+.wizard-button:disabled:hover {
+	background-color: #eee;
+	color: #bbbbbb;
+	cursor: not-allowed;
+	text-shadow: none;
+}
+
+.wizard-button.small {
+	font-size: 14px;
+	padding: 3px 9px;
+}
+
+.wizard-button.hidden {
+	display: none;
+}
+
+/* Swal and Toast styles */
+
+.swal2-popup.swal2-toast.wiz-toast {
+	background-color: var(--teal);
+	color: #fff;
+}
+
+/* Dropdown menus */
+
+.wizard-dropdown {
+	position: relative;
+	cursor: pointer;
+}
+.wizard-dropdown.disabled {
+	cursor: not-allowed;
+}
+.wizard-dropdown-panel {
+	position: absolute;
+	left: 0;
+	top: 100%;
+	background-color: #3d405b;
+	color: #ffffff;
+	border-radius: 5px;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+	padding: 15px;
+	z-index: 999;
+}
+.wizard-dropdown-panel:not([data-open="true"]) {
+	display: none;
+}
+.wizard-dropdown-panel ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.wizard-dropdown-panel ul li {
+	display: block;
+	padding: 8px;
+	white-space: nowrap;
+}
+.wizard-dropdown-panel ul li a {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+.wizard-dropdown-panel ul li:hover {
+	background-color: var(--navy-hover);
+}
+
+/* Wizard login required */
+.wizard-login-required {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 20px auto;
+    max-width: 400px;
+}
+
+.wizard-login-required h2 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.wizard-login-required p {
+    margin-bottom: 20px;
+    color: #666;
+}
+

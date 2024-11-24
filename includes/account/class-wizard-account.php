@@ -1,4 +1,5 @@
 <?php
+// Initialize the account page
 add_action('template_redirect', function() {
     if (is_page(get_option('wizard_account_page_id'))) {
         $account = new WizardAccount();
@@ -26,6 +27,7 @@ class WizardAccount
     public function init()
     {
         // Process form submission before any output
+        // Duplicate form submission are prevented via safe redirect in account-redirects.php
         if (isset($_POST['wizard_account_action'])) {
             $this->handle_form_submission();
         }
@@ -157,7 +159,7 @@ class WizardAccount
 
     public function process_account_update()
     {
-        $user_id = get_current_user_id();
+        $user_id = $this->user->ID;
         $user_data = array();
         $updated = false;
 

@@ -2,3 +2,24 @@
 @import '../../node_modules/sweetalert2/dist/sweetalert2.min.css';
 @import "../../node_modules/nice-select2/dist/css/nice-select2.css";
 @import "./swal2.css";
+
+/* Global Components */
+@import "./global.css";
+
+/* Forms */
+@import "./forms.css";
+
+/* Single Template */
+@import "./single-template.css";
+
+/* Template Archive */
+@import "./template-archive.css";
+
+/* Account Page */
+@import "./page-account.css";
+
+/* Slideover */
+@import "./slideover.css";
+
+/* Tabs */
+@import "./tabs.css";
