@@ -1,6 +1,3 @@
-import { templateTableAPI } from "./template-table-api.js";
-import { show_error_toast } from "../../utils/functions.js";
-
 export function initPaginationControls() {
     const perPageSelect = document.querySelector('.wizard-per-page-select');
     if (perPageSelect) {

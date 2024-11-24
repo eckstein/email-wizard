@@ -8,13 +8,34 @@ class WizardFolders
 
     public function __construct($user_id, $team_id = null)
     {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return;
+        }
+
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->table_name = $wpdb->prefix . 'user_folders';
         $this->user_id = $user_id;
+        
         $teams = new WizardTeams();
         $active_team = $teams->get_active_team($user_id);
-        $this->team_id = $team_id ?? $active_team;
+        
+        // If no active team, initialize with null
+        if (!$active_team) {
+            $this->team_id = null;
+            return;
+        }
+
+        $team_id = $team_id ?? $active_team;
+        
+        // Validate team access
+        $team_access = $this->validate_team_access($team_id);
+        if (is_wp_error($team_access)) {
+            $this->team_id = $active_team; // Fallback to active team
+        } else {
+            $this->team_id = $team_id;
+        }
     }
 
     public function add_folder($folder_name, $parent_id = null)
@@ -37,6 +58,11 @@ class WizardFolders
 
     public function get_folders($exclude = [])
     {
+        // Return early if user is not logged in
+        if (!is_user_logged_in()) {
+            return [];
+        }
+
         $query = "SELECT * FROM {$this->table_name} WHERE (created_by = %d AND team_id = %d) ";
         $params = [$this->user_id, $this->team_id];
 
@@ -56,6 +82,10 @@ class WizardFolders
      * @return array|WP_Error Folder data if accessible, WP_Error if not
      */
     private function validate_folder_access($folder_id) {
+        if (!is_user_logged_in() || !$this->team_id) {
+            return new WP_Error('not_logged_in', 'You must be logged in to access folders');
+        }
+
         $folder = $this->get_folder($folder_id);
         if (!$folder) {
             return new WP_Error('permission_denied', 'You do not have permission to access this folder');
@@ -120,6 +150,11 @@ class WizardFolders
      * @return array Array of folder data or folder IDs
      */
     private function get_subfolder_data($parent_id, $recursive = true, $ids_only = false) {
+        // Return early if user is not logged in
+        if (!is_user_logged_in()) {
+            return [];
+        }
+
         $select = $ids_only ? 'id' : '*';
         
         // Handle "root" case by looking for NULL parent_id
@@ -268,5 +303,42 @@ class WizardFolders
         return $template_manager->get_templates_by_folders($folder_id, [
             'recursive' => $recursive
         ]);
+    }
+
+    /**
+     * Validates if the user has access to the specified team
+     *
+     * @param int $team_id The team ID to validate
+     * @return bool|WP_Error True if user has access, WP_Error if not
+     */
+    private function validate_team_access($team_id) {
+        if (!$team_id) {
+            return new WP_Error('invalid_team', 'Invalid team ID');
+        }
+
+        $teams = new WizardTeams();
+        $user_teams = $teams->get_user_teams($this->user_id);
+        
+        if (!in_array($team_id, $user_teams)) {
+            return new WP_Error('permission_denied', 'You do not have permission to access this team\'s folders');
+        }
+
+        return true;
+    }
+
+    /**
+     * Updates the team context for the folder manager
+     *
+     * @param int $team_id New team ID
+     * @return bool|WP_Error True on success, WP_Error if user doesn't have access
+     */
+    public function switch_team($team_id) {
+        $team_access = $this->validate_team_access($team_id);
+        if (is_wp_error($team_access)) {
+            return $team_access;
+        }
+
+        $this->team_id = $team_id;
+        return true;
     }
 }

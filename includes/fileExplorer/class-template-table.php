@@ -13,9 +13,23 @@ class WizardTemplateTable
 
     public function __construct($current_user_id, $folder_id, $args = [])
     {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return;
+        }
+
         $this->user_id = $current_user_id ?? get_current_user_id();
         $teams = new WizardTeams();
         $active_team = $teams->get_active_team($this->user_id);
+        
+        // If no active team, initialize with empty values
+        if (!$active_team) {
+            $this->user_folders = null;
+            $this->folder_id = null;
+            $this->team_id = null;
+            return;
+        }
+
         $this->user_folders = new WizardFolders($this->user_id, $active_team);
         
         $this->folder_id = $folder_id;
@@ -35,7 +49,6 @@ class WizardTemplateTable
         }
 
         $this->args = $args;
-        error_log('TemplateTable Constructor - Folder ID: ' . $this->folder_id);
         $this->template_manager = new WizardTemplates();
 
         add_action('pre_get_posts', array($this, 'modify_template_query'));
@@ -43,10 +56,8 @@ class WizardTemplateTable
 
     public function modify_template_query($query)
     {
-        error_log('Modify Template Query Called');
 
         if (!is_admin() && $query->is_post_type_archive('wiz_template')) {
-            error_log('Inside Main Condition');
 
             // Get per_page from URL or default to 10
             $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
@@ -185,6 +196,11 @@ class WizardTemplateTable
      */
     public function render($part = 'full', $itemId = null, $showRowBreadcrumb = false)
     {
+        // Check if user is logged in and has an active team
+        if (!is_user_logged_in() || !$this->team_id) {
+            return '';
+        }
+
         $folder_id = $this->folder_id;
         $folder_subfolders = $this->subfolder_ids ?? [];
         $user_folders = $this->user_folders;
@@ -728,7 +744,7 @@ class WizardTemplateTable
             if ($isChildOfCurrentFolder) {
                 $breadcrumbHtml .= "<span class='breadcrumb-item'>Current folder</span>";
             } else {
-                $breadcrumbHtml .= generate_wizard_folder_breadcrumb($thisTemplatesFolder, $this->user_folders->get_folders(), true);
+                $breadcrumbHtml .= $this->generate_folder_breadcrumb($thisTemplatesFolder, true);
             }
             $breadcrumbHtml .= '</div>';
         }

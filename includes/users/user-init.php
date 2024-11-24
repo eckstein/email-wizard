@@ -25,7 +25,9 @@ add_action( 'init', 'create_wizard_user_role' );
 add_action('user_register', 'wizard_user_register_actions');
 function wizard_user_register_actions($user_id) {
 	set_new_user_as_wizard($user_id);
+	set_user_email_as_username($user_id);
 	create_default_user_team($user_id);
+	
 }
 
 function set_new_user_as_wizard( $user_id ) {
@@ -40,14 +42,9 @@ function create_default_user_team($user_id) {
 	// Set new team as active team
 	$teamsManager->switch_active_team($user_id, $newTeamId);
 }
-
-//Keep wizard users out of admin
-add_action('admin_init', 'redirect_wizard_user_from_admin');
-function redirect_wizard_user_from_admin() {
-	if ( current_user_can( 'wizard_user' ) && ! current_user_can( 'administrator' ) && is_admin() ) {
-		wp_redirect( home_url() );
-		exit;
-	}
+function set_user_email_as_username($user_id) {
+	$user = new WP_User($user_id);
+	$user->set_username($user->user_email);
 }
 
 add_action('after_setup_theme', 'remove_admin_bar_for_wizard_user');

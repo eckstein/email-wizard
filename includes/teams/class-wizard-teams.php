@@ -354,6 +354,11 @@ class WizardTeams
      */
     public function get_active_team($user_id)
     {
+        // Return early if user is not logged in
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
         $team_id = get_user_meta($user_id, self::CURRENT_TEAM_META_KEY, true);
 
         // If no team is set or the team is invalid/inactive, get the first available team
@@ -371,9 +376,18 @@ class WizardTeams
     }
 
     public function get_active_team_name($userId) {
+        // Return early if user is not logged in
+        if (!is_user_logged_in()) {
+            return '';
+        }
+
         $team_id = $this->get_active_team($userId);
+        if (!$team_id) {
+            return '';
+        }
+        
         $team = $this->get_team($team_id);
-        return $team->name;
+        return is_wp_error($team) ? '' : $team->name;
     }
 
     /**

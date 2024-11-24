@@ -15,6 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// Start session if not already started
+function wizard_start_session() {
+	if (!session_id() && !headers_sent()) {
+		session_start();
+	}
+}
+add_action('init', 'wizard_start_session', 1);
+
 // Globals
 $pluginVersion = '1.0.0';
 define( 'EMAILWIZARD_VERSION', $pluginVersion );
@@ -32,8 +40,6 @@ foreach ($iterator as $file) {
 	}
 }
 
-// Enqueue scripts and styles
-include_once plugin_dir_path( __FILE__ ) . 'enqueue.php';
 
 
 // Plugin activation hook

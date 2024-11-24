@@ -1,5 +1,57 @@
-<?php
 
+<?php
+add_action ('wiz_ajax_generate_template_table_part', 'ajax_generate_template_table_part');
+
+function ajax_generate_template_table_part()
+{
+    $part = isset($_POST['part']) ? sanitize_text_field($_POST['part']) : '';
+    $current_folder = isset($_POST['current_folder']) ? sanitize_text_field($_POST['current_folder']) : '';
+    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+    $item_id = isset($_POST['item_id']) ? sanitize_text_field($_POST['item_id']) : null;
+    
+    // Get args from POST and decode
+    $args = isset($_POST['args']) ? json_decode(stripslashes($_POST['args']), true) : [];
+
+    $result = generate_template_table_part($part, $current_folder, $user_id, $item_id, $args);
+
+    if (isset($result['error'])) {
+        wp_send_json_error($result['error']);
+    } else {
+        wp_send_json_success($result);
+    }
+}
+function generate_template_table_part($part, $current_folder, $user_id, $item_id = null, $args = [])
+{
+    $validParts = ['folder_actions', 'header', 'subfolders', 'templates', 'folder_row', 'template_row', 'body', 'full'];
+    if (!in_array($part, $validParts)) {
+        return ['error' => 'Invalid part name passed'];
+    }
+    if (!$user_id || !$current_folder) {
+        return ['error' => 'Missing user or folder id'];
+    }
+
+    $template_table = new WizardTemplateTable($user_id, $current_folder, $args);
+
+    $html = $template_table->render($part, $item_id);
+    return $html ? ['html' => $html] : ['error' => 'Failed to generate HTML'];
+}
+
+add_action('wiz_ajax_generate_wizard_folder_breadcrumb', 'ajax_generate_wizard_folder_breadcrumb');
+function ajax_generate_wizard_folder_breadcrumb() {
+    $user_id = get_current_user_id();
+    $current_folder = $_POST['current_folder'] ?? false;
+    
+    // Create template table instance
+    $template_table = new WizardTemplateTable($user_id, $current_folder);
+    
+    // Generate breadcrumb using the class method
+    $breadcrumbHtml = $template_table->generate_folder_breadcrumb($current_folder);
+    
+    if (!$breadcrumbHtml) {
+        wp_send_json_error('Failed to generate breadcrumb HTML');
+    }
+    wp_send_json_success($breadcrumbHtml);
+}
 
 
 // Add folder on ajax request

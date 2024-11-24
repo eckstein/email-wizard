@@ -14,14 +14,11 @@ $templateFolder = get_post_meta($postId, 'wizard_folder', true);
 	<div class="wizHeaderInnerWrap">
 		<div class="wizHeader-left">
 			<div id="single-wizard-template-breadcrumb">
-				<?php echo $breadcrumb = generate_wizard_folder_breadcrumb($templateFolder, $user_folders); ?>
+				
 			</div>
 			<h1 id="single-template-title" class="entry-title" title="<?php echo get_the_title(); ?>" itemprop="name">
 				<?php echo get_the_title($postId); ?>
 			</h1>
-
-
-
 		</div>
 		<div class="wizHeader-right">
 			<div class="wizHeader-actions">

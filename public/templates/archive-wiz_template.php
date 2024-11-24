@@ -5,12 +5,26 @@
 
 get_header();
 
-// Get current folder ID from URL using consistent parameter
+// Check if user is logged in
+if (!is_user_logged_in()) {
+    ?>
+    <div class="wrap wiz-template-archive">
+        <div class="wizard-login-required">
+            <h2>Login Required</h2>
+            <p>Please log in to view and manage templates.</p>
+            <a href="<?php echo esc_url(wp_login_url(get_permalink())); ?>" class="wizard-button">
+                Login
+            </a>
+        </div>
+    </div>
+    <?php
+    get_footer();
+    return;
+}
+
+// Continue with existing code for logged-in users
 $current_folder_id = isset($_GET['folder_id']) ? sanitize_text_field($_GET['folder_id']) : 'root';
 $current_user_id = get_current_user_id();
-
-error_log('Archive Template - Current Folder ID: ' . $current_folder_id);
-error_log('Archive Template - Current User ID: ' . $current_user_id);
 
 // Initialize the template table
 $template_table = new WizardTemplateTable(

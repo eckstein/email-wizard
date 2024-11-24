@@ -12,11 +12,14 @@ function generate_wizard_app_nav_menu()
                 <li><button class="wizard-button new-template"><i class="fa-solid fa-plus"></i>&nbsp;&nbsp;New
                         Template</button>
                 </li>
-                <li><button class="wizard-button new-team"><i class="fa-solid fa-plus"></i>&nbsp;&nbsp;New
-                        Team</button>
-                </li>
+
                 <li id="user-dropdown" class="wizard-slideover-trigger">
-                    <div class="wizard-avatar"><?php echo get_first_letter_of_nicename(); ?></div>
+                    <div class="wizard-avatar">
+                        <?php 
+                        $avatar = new WizardAvatar();
+                        echo $avatar->get_avatar(32);
+                        ?>
+                    </div>
                 </li>
             </ul>
         <?php else : ?>
@@ -30,12 +33,6 @@ function generate_wizard_app_nav_menu()
 <?php
 }
 
-function get_first_letter_of_nicename()
-{
-    $currentUser = wp_get_current_user();
-    $firstLetter = strtoupper(substr($currentUser->display_name, 0, 1));
-    return $firstLetter;
-}
 
 add_action('wizard_inside_container_end', 'generate_wizard_slideover');
 
@@ -46,6 +43,9 @@ function generate_wizard_slideover()
     $teamsManager = new WizardTeams();
     $userTeams = $teamsManager->get_user_teams($currentUser->ID);
     $currentTeam = $teamsManager->get_active_team($currentUser->ID);
+    $accountPageId = get_option('wizard_account_page_id');
+    $accountPageUrl = get_permalink($accountPageId);
+    $wizardAvatar = new WizardAvatar();
     $slideOverHtml = '
     <div class="slideover-wrapper wizard-slideover">
         <div class="slideover-header">
@@ -54,12 +54,12 @@ function generate_wizard_slideover()
         </div>
     
         <div class="slideover-account">
-            <div class="wizard-avatar">' . get_first_letter_of_nicename() . '</div>
+            <div class="wizard-avatar">' . $wizardAvatar->get_avatar() . '</div>
             <div class="slideover-user-info">
                 <div class="slideover-username">' . $currentUser->display_name . '</div>
                 <div class="slideover-email">' . $currentUser->user_email . '</div>
             </div>
-            <div class="slideover-settings"><i class="fa-solid fa-gear"></i></div>
+            <div class="slideover-settings"><a href="' . esc_url($accountPageUrl) . '"><i class="fa-solid fa-gear"></i></a></div>
         </div>
     
         <div class="slideover-teams">
@@ -78,7 +78,7 @@ function generate_wizard_slideover()
         </div>
     
         <div class="slideover-footer">
-            <button class="slideover-signout wizard-button small red">Sign out</button>
+            <a href="' . esc_url(wp_logout_url()) . '" class="slideover-signout wizard-button small red">Sign out</a>
             <div class="slideover-footer-links">
                 <a href="#" class="slideover-link">Terms</a>
                 <a href="#" class="slideover-link">Privacy</a>

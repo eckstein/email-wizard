@@ -14,13 +14,22 @@ class WizardTemplates
 
 	public function __construct()
 	{
+		// Check if user is logged in
+		if (!is_user_logged_in()) {
+			return;
+		}
+
 		global $wpdb;
 		$this->wpdb = $wpdb;
 		$this->template_data_table = $wpdb->prefix . 'wiz_templates';
 		$this->user_id = get_current_user_id();
 		$teamManager = new WizardTeams();
 		$this->team_id = $teamManager->get_active_team($this->user_id);
-		$this->folder_manager = new WizardFolders($this->user_id, $this->team_id);
+		
+		// Only initialize folder manager if we have a team
+		if ($this->team_id) {
+			$this->folder_manager = new WizardFolders($this->user_id, $this->team_id);
+		}
 	}
 
 	public static function get_instance()
@@ -387,6 +396,10 @@ class WizardTemplates
 	 * @return WP_Post|null Post object if valid, null otherwise
 	 */
 	private function validate_template($post) {
+		if (!is_user_logged_in() || !$this->team_id) {
+			return null;
+		}
+
 		if (is_numeric($post)) {
 			$post = get_post($post);
 		}
