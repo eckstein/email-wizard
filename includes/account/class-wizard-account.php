@@ -1,4 +1,11 @@
 <?php
+add_action('template_redirect', function() {
+    if (is_page(get_option('wizard_account_page_id'))) {
+        $account = new WizardAccount();
+        $account->init();
+    }
+});
+
 class WizardAccount
 {
     private $tabs;
@@ -13,7 +20,26 @@ class WizardAccount
             $this->user = wp_get_current_user();
             $this->tabs = [];
             $this->register_default_tabs();
+        }
+    }
+
+    public function init()
+    {
+        // Process form submission before any output
+        if (isset($_POST['wizard_account_action'])) {
             $this->handle_form_submission();
+        }
+    }
+
+    private function handle_form_submission()
+    {
+        if (!wp_verify_nonce($_POST['wizard_account_nonce'], 'wizard_account_info')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        if ($_POST['wizard_account_action'] === 'update_account') {
+            $this->process_account_update();
         }
     }
 
@@ -98,19 +124,13 @@ class WizardAccount
 
         ob_start();
         ?>
-        <?php if (!empty($this->messages)) { ?>
-            <?php foreach ($this->messages as $message) { ?>
-                <div class="wizard-message wizard-message-<?php echo esc_attr($message['type']); ?>">
-                    <?php echo esc_html($message['text']); ?>
-                </div>
-            <?php } ?>
-        <?php } ?>
-
         <div class="wizard-tabs" id="account-menu-tabs">
             <?php echo $this->generate_tab_list(); ?>
 
             <div class="wizard-tab-panels">
                 <form method="post" action="" enctype="multipart/form-data">
+                    <input type="hidden" name="wizard_account_action" value="update_account">
+                    <?php wp_nonce_field('wizard_account_info', 'wizard_account_nonce'); ?>
                     <?php foreach ($this->tabs as $index => $tab) { ?>
                         <div class="wizard-tab-content <?php echo $index === 0 ? 'active' : ''; ?>"
                             data-content="tab-<?php echo esc_attr($tab['id']); ?>">
@@ -124,25 +144,15 @@ class WizardAccount
         return ob_get_clean();
     }
 
-    private function handle_form_submission()
+    private function add_message($type, $text)
     {
-        if (!isset($_POST['wizard_account_action'])) {
-            return;
+        if (!isset($_SESSION['wizard_account_messages'])) {
+            $_SESSION['wizard_account_messages'] = [];
         }
-
-        if (!wp_verify_nonce($_POST['wizard_account_nonce'], 'wizard_account_info')) {
-            $this->messages[] = [
-                'type' => 'error',
-                'text' => 'Security verification failed.'
-            ];
-            return;
-        }
-
-        switch ($_POST['wizard_account_action']) {
-            case 'update_account':
-                $this->process_account_update();
-                break;
-        }
+        $_SESSION['wizard_account_messages'][] = [
+            'type' => $type,
+            'text' => $text
+        ];
     }
 
     public function process_account_update()
@@ -150,6 +160,57 @@ class WizardAccount
         $user_id = get_current_user_id();
         $user_data = array();
         $updated = false;
+
+        // Handle avatar upload first
+        if (!empty($_FILES['avatar']['name'])) {
+            // Check file type
+            $file_type = wp_check_filetype($_FILES['avatar']['name']);
+            if (!in_array($file_type['ext'], array('jpg', 'jpeg', 'png', 'gif'))) {
+                $this->add_message('error', 'Invalid file type. Please upload an image file (JPG, PNG, or GIF).');
+                return;
+            }
+
+            // Check file size (5MB limit)
+            if ($_FILES['avatar']['size'] > 5 * 1024 * 1024) {
+                $this->add_message('error', 'File is too large. Maximum size is 5MB.');
+                return;
+            }
+
+            if (!function_exists('wp_handle_upload')) {
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                require_once(ABSPATH . 'wp-admin/includes/media.php');
+            }
+
+            // Delete existing avatar first
+            $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
+            if ($existing_avatar_id) {
+                wp_delete_attachment($existing_avatar_id, true);
+            }
+
+            // Upload the file
+            $avatar_id = media_handle_upload('avatar', 0);
+
+            if (is_wp_error($avatar_id)) {
+                $this->add_message('error', 'Failed to upload avatar: ' . $avatar_id->get_error_message());
+                return;
+            }
+
+            // Update user meta with new avatar
+            update_user_meta($user_id, 'local_avatar', $avatar_id);
+            
+            $updated = true;
+        }
+
+        // Handle avatar deletion if requested
+        if (isset($_POST['delete_avatar'])) {
+            $avatar_id = get_user_meta($user_id, 'local_avatar', true);
+            if ($avatar_id) {
+                wp_delete_attachment($avatar_id, true);
+                delete_user_meta($user_id, 'local_avatar');
+                $updated = true;
+            }
+        }
 
         // Handle basic user data updates
         if (isset($_POST['first_name'])) {
@@ -182,16 +243,10 @@ class WizardAccount
                     $user_data['user_pass'] = $_POST['new_password'];
                     $updated = true;
                 } else {
-                    $this->messages[] = [
-                        'type' => 'error',
-                        'text' => 'New passwords do not match.'
-                    ];
+                    $this->add_message('error', 'New passwords do not match.');
                 }
             } else {
-                $this->messages[] = [
-                    'type' => 'error',
-                    'text' => 'Current password is incorrect.'
-                ];
+                $this->add_message('error', 'Current password is incorrect.');
             }
         }
 
@@ -201,85 +256,19 @@ class WizardAccount
             $result = wp_update_user($user_data);
             
             if (is_wp_error($result)) {
-                $this->messages[] = [
-                    'type' => 'error',
-                    'text' => $result->get_error_message()
-                ];
+                $this->add_message('error', $result->get_error_message());
             } else {
                 $updated = true;
             }
         }
 
-        // Handle avatar deletion if requested
-        if (isset($_POST['delete_avatar'])) {
-            $avatar_id = get_user_meta($user_id, 'local_avatar', true);
-            if ($avatar_id) {
-                wp_delete_attachment($avatar_id, true);
-                delete_user_meta($user_id, 'local_avatar');
-                $updated = true;
-            }
-        }
-
-        // Handle avatar upload
-        if (!empty($_FILES['avatar']['name'])) {
-            // Check file type
-            $file_type = wp_check_filetype($_FILES['avatar']['name']);
-            if (!in_array($file_type['ext'], array('jpg', 'jpeg', 'png', 'gif'))) {
-                $this->messages[] = [
-                    'type' => 'error',
-                    'text' => 'Invalid file type. Please upload an image file (JPG, PNG, or GIF).'
-                ];
-                return;
-            }
-
-            // Check file size (5MB limit)
-            if ($_FILES['avatar']['size'] > 5 * 1024 * 1024) {
-                $this->messages[] = [
-                    'type' => 'error',
-                    'text' => 'File is too large. Maximum size is 5MB.'
-                ];
-                return;
-            }
-
-            if (!function_exists('wp_handle_upload')) {
-                require_once(ABSPATH . 'wp-admin/includes/file.php');
-                require_once(ABSPATH . 'wp-admin/includes/image.php');
-                require_once(ABSPATH . 'wp-admin/includes/media.php');
-            }
-
-            // Delete existing avatar first
-            $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
-            if ($existing_avatar_id) {
-                wp_delete_attachment($existing_avatar_id, true);
-            }
-
-            // Upload the file
-            $avatar_id = media_handle_upload('avatar', 0);
-
-            if (is_wp_error($avatar_id)) {
-                $this->messages[] = [
-                    'type' => 'error',
-                    'text' => 'Failed to upload avatar: ' . $avatar_id->get_error_message()
-                ];
-                return;
-            }
-
-            // Update user meta with new avatar
-            update_user_meta($user_id, 'local_avatar', $avatar_id);
-            
-            $this->messages[] = [
-                'type' => 'success',
-                'text' => 'Avatar updated successfully.'
-            ];
-            return;
-        }
-
         // Add success message if anything was updated
-        if ($updated && empty($this->messages)) {
-            $this->messages[] = [
-                'type' => 'success',
-                'text' => 'Account information updated successfully.'
-            ];
+        if ($updated) {
+            $this->add_message('success', 'Account information updated successfully.');
+            
+            // Redirect to prevent form resubmission
+            wp_safe_redirect(add_query_arg('account_updated', 'true', $_SERVER['REQUEST_URI']));
+            exit;
         }
     }
 }
