@@ -1,0 +1,59 @@
+/* Inherit base styles from account page */
+
+
+/* Member specific styles */
+.member-actions-header {
+    margin-bottom: 20px;
+}
+
+.member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.member-role {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.member-role.admin {
+    background: var(--primary-color);
+    color: white;
+}
+
+.member-role.member {
+    background: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.member-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Danger Zone */
+.danger-zone {
+    background-color: var(--danger-bg);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+
+.help-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 5px;
+} 

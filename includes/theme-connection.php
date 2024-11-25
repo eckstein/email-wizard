@@ -43,8 +43,7 @@ function generate_wizard_slideover()
     $teamsManager = new WizardTeams();
     $userTeams = $teamsManager->get_user_teams($currentUser->ID);
     $currentTeam = $teamsManager->get_active_team($currentUser->ID);
-    $accountPageId = get_option('wizard_account_page_id');
-    $accountPageUrl = get_permalink($accountPageId);
+    $accountPageUrl = get_bloginfo('url') . '/account';
     $wizardAvatar = new WizardAvatar();
     $slideOverHtml = '
     <div class="slideover-wrapper wizard-slideover">

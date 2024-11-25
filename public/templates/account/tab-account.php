@@ -13,8 +13,8 @@ if (isset($_SESSION['wizard_account_messages'])) {
 
 <div class="wizard-form-content">
     <form method="post" enctype="multipart/form-data">
-        <?php wp_nonce_field('wizard_account_info', 'wizard_account_nonce'); ?>
-        <input type="hidden" name="wizard_account_action" value="update_account">
+        <input type="hidden" name="wizard_form_action" value="update_account">
+        <?php wp_nonce_field('wizard_update_account', 'wizard_update_account_nonce'); ?>
 
         <div class="wizard-form-fieldgroup">
             <div class="wizard-form-fieldgroup-label">Profile Picture</div>

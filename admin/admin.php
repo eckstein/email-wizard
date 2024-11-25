@@ -3,7 +3,7 @@
 // Register settings and options page
 function wizard_settings_init() {
     // Register a new setting
-    register_setting('wizard_options', 'wizard_account_page_id');
+    // register_setting('wizard_options', 'wizard_account_page_id');
 
     // Add a new section
     add_settings_section(
@@ -14,13 +14,15 @@ function wizard_settings_init() {
     );
 
     // Add fields to that section
-    add_settings_field(
-        'wizard_account_page_id',
-        __('Account Page', 'wizard'),
-        'wizard_account_page_callback',
-        'wizard-options',
-        'wizard_general_section'
-    );
+    // add_settings_field(
+    //     'wizard_account_page_id',
+    //     __('Account Page', 'wizard'),
+    //     'wizard_account_page_callback',
+    //     'wizard-options',
+    //     'wizard_general_section'
+    // );
+
+    
 }
 add_action('admin_init', 'wizard_settings_init');
 
@@ -41,19 +43,12 @@ add_action('admin_menu', 'wizard_options_page');
 // Section callback
 function wizard_general_section_callback() {
     echo '<p>' . __('Configure your wizard settings below.', 'wizard') . '</p>';
+
 }
 
-// Field callback
-function wizard_account_page_callback() {
-    $account_page_id = get_option('wizard_account_page_id');
-    wp_dropdown_pages(array(
-        'name' => 'wizard_account_page_id',
-        'id' => 'wizard_account_page_id',
-        'selected' => $account_page_id,
-        'show_option_none' => __('-- Select a page --', 'wizard'),
-    ));
-    echo '<p class="description">' . __('Select the page where you want to display the account template.', 'wizard') . '</p>';
-}
+
+
+
 
 // Render the options page
 function wizard_render_options_page() {

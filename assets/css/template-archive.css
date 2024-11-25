@@ -64,7 +64,7 @@
 	display: flex;
     gap: 0.5rem;
     align-items: center;
-	padding: 6px;
+	padding: 8px 6px;
     border: 1px solid #ddd;
     border-radius: 4px;
     text-decoration: none;
@@ -177,7 +177,7 @@
 	display: flex;
 	justify-content: space-between;
 	gap: 20px;
-	align-items: center;
+	align-items: flex-start;
 }
 .wiz-template-archive #bulk-actions {
 	display: flex;

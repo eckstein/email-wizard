@@ -1,47 +1,79 @@
 <?php
 // Initialize the account page
 add_action('template_redirect', function() {
-    if (is_page(get_option('wizard_account_page_id'))) {
+    global $wizard_account_page;
+    if ($wizard_account_page) {
         $account = new WizardAccount();
         $account->init();
     }
 });
 
-class WizardAccount
+require_once plugin_dir_path(dirname(__FILE__)) . 'interface/class-wizard-tabs.php';
+
+class WizardAccount extends WizardTabs
 {
-    private $tabs;
     private $user;
-    private $is_authorized;
-    public $messages = array();
 
     public function __construct()
     {
-        $this->is_authorized = is_user_logged_in();
+        parent::__construct();
+        
         if ($this->is_authorized) {
             $this->user = wp_get_current_user();
-            $this->tabs = [];
             $this->register_default_tabs();
+            $this->register_default_handlers();
+        }
+    }
+
+    protected function get_container_id()
+    {
+        return 'account-menu-tabs';
+    }
+
+    private function register_default_handlers()
+    {
+        $this->register_form_handler('update_account', array($this, 'process_account_update'));
+        // Future handlers will be registered here
+        // $this->register_form_handler('update_team', array($this, 'process_team_update'));
+    }
+
+    public function register_form_handler($action, $callback)
+    {
+        if (is_callable($callback)) {
+            $this->handlers[$action] = $callback;
         }
     }
 
     public function init()
     {
-        // Process form submission before any output
-        // Duplicate form submission are prevented via safe redirect in account-redirects.php
-        if (isset($_POST['wizard_account_action'])) {
+        if (isset($_POST['wizard_form_action'])) {
             $this->handle_form_submission();
+        }
+
+        if (isset($_GET['wizard_message'])) {
+            $message = get_transient('wizard_account_message_' . get_current_user_id());
+            if ($message) {
+                $this->messages[] = $message;
+                delete_transient('wizard_account_message_' . get_current_user_id());
+            }
         }
     }
 
     private function handle_form_submission()
     {
-        if (!wp_verify_nonce($_POST['wizard_account_nonce'], 'wizard_account_info')) {
+        $action = sanitize_key($_POST['wizard_form_action']);
+        $nonce_key = 'wizard_' . $action . '_nonce';
+        $nonce_action = 'wizard_' . $action;
+
+        if (!isset($_POST[$nonce_key]) || !wp_verify_nonce($_POST[$nonce_key], $nonce_action)) {
             $this->add_message('error', 'Security verification failed.');
             return;
         }
 
-        if ($_POST['wizard_account_action'] === 'update_account') {
-            $this->process_account_update();
+        if (isset($this->handlers[$action])) {
+            call_user_func($this->handlers[$action]);
+        } else {
+            $this->add_message('error', 'Invalid form action.');
         }
     }
 
@@ -76,85 +108,20 @@ class WizardAccount
         ]);
     }
 
-    public function add_tab($tab)
-    {
-        $this->tabs[] = $tab;
-    }
-
-    private function generate_tab_list()
-    {
-        $output = '<ul class="wizard-tabs-list">';
-        foreach ($this->tabs as $index => $tab) {
-            $active = $index === 0 ? 'class="active"' : '';
-            $output .= sprintf(
-                '<li data-tab="tab-%s" %s>
-                    <i class="%s"></i>
-                    <span class="tab-item-label">%s</span>
-                    <span class="tab-item-indicator"><i class="fa-solid fa-chevron-right"></i></span>
-                </li>',
-                esc_attr($tab['id']),
-                $active,
-                esc_attr($tab['icon']),
-                esc_html($tab['title'])
-            );
-        }
-        $output .= '</ul>';
-        return $output;
-    }
-
-    private function load_tab_template($template_name)
-    {
-        if (!$this->is_authorized) {
-            return '';
-        }
-
-        $template_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'public/templates/account/' . $template_name;
-        if (!file_exists($template_path)) {
-            return "Template not found: " . esc_html($template_path);
-        }
-
-        ob_start();
-        load_template($template_path, false);
-        return ob_get_clean();
-    }
-
-    public function render()
-    {
-        if (!$this->is_authorized) {
-            return '<p>' . esc_html__('You must be logged in to view this page.', 'wizard') . '</p>';
-        }
-
-        ob_start();
-        ?>
-        <div class="wizard-tabs" id="account-menu-tabs">
-            <?php echo $this->generate_tab_list(); ?>
-
-            <div class="wizard-tab-panels">
-                <form method="post" action="" enctype="multipart/form-data">
-                    <input type="hidden" name="wizard_account_action" value="update_account">
-                    <?php wp_nonce_field('wizard_account_info', 'wizard_account_nonce'); ?>
-                    <?php foreach ($this->tabs as $index => $tab) { ?>
-                        <div class="wizard-tab-content <?php echo $index === 0 ? 'active' : ''; ?>"
-                            data-content="tab-<?php echo esc_attr($tab['id']); ?>">
-                            <?php echo $this->load_tab_template($tab['template']); ?>
-                        </div>
-                    <?php } ?>
-                </form>
-            </div>
-        </div>
-        <?php
-        return ob_get_clean();
-    }
-
     private function add_message($type, $text)
     {
-        if (!isset($_SESSION['wizard_account_messages'])) {
-            $_SESSION['wizard_account_messages'] = [];
-        }
-        $_SESSION['wizard_account_messages'][] = [
+        $message = [
             'type' => $type,
             'text' => $text
         ];
+        
+        if (defined('DOING_AJAX') || headers_sent()) {
+            $this->messages[] = $message;
+        } else {
+            set_transient('wizard_account_message_' . get_current_user_id(), $message, 60);
+            wp_safe_redirect(add_query_arg('wizard_message', '1', remove_query_arg(array_keys($_GET))));
+            exit;
+        }
     }
 
     public function process_account_update()
@@ -264,13 +231,10 @@ class WizardAccount
             }
         }
 
-        // Add success message if anything was updated
+        // Update success message handling
         if ($updated) {
             $this->add_message('success', 'Account information updated successfully.');
-            
-            // Redirect to prevent form resubmission
-            wp_safe_redirect(add_query_arg('account_updated', 'true', $_SERVER['REQUEST_URI']));
-            exit;
+            return; // The add_message method will handle the redirect
         }
     }
 }

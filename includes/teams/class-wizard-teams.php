@@ -401,4 +401,23 @@ class WizardTeams
         delete_user_meta($user_id, self::CURRENT_TEAM_META_KEY);
         return true;
     }
+
+    public function get_member_role($team_id, $user_id) {
+        $role = $this->wpdb->get_var($this->wpdb->prepare(
+            "SELECT role 
+            FROM {$this->wpdb->prefix}team_members 
+            WHERE team_id = %d 
+            AND user_id = %d 
+            AND status = 'active'",
+            $team_id,
+            $user_id
+        ));
+
+        return $role;
+    }
+
+    public function is_regular_member($team_id, $user_id) {
+        $role = $this->get_member_role($team_id, $user_id);
+        return $role === 'member';
+    }
 }
