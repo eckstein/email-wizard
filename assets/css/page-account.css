@@ -57,14 +57,12 @@
 
 .wizard-teams-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 30px;
 }
 
-.wizard-teams-header h2 {
-    margin: 0;
-}
+
 
 .wizard-teams-empty {
     text-align: center;

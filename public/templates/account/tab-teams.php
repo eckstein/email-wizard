@@ -6,7 +6,6 @@ $currentTeam = $teamsManager->get_active_team(get_current_user_id());
 
 <div class="wizard-teams-container">
     <div class="wizard-teams-header">
-        <h2>Your Teams</h2>
         <button class="wizard-button button-primary new-team">
             <i class="fa-solid fa-plus"></i>&nbsp;&nbsp;Create New Team
         </button>

@@ -48,24 +48,7 @@ class WizardAccount extends WizardTabs {
         return 'account';
     }
 
-    /**
-     * Register default form handlers for account actions.
-     */
-    private function register_default_handlers() {
-        $this->register_form_handler('update_account', array($this, 'process_account_update'));
-    }
-
-    /**
-     * Register a form handler callback for a specific action.
-     * 
-     * @param string   $action   The form action identifier
-     * @param callable $callback The function to handle the form submission
-     */
-    public function register_form_handler($action, $callback) {
-        if (is_callable($callback)) {
-            $this->handlers[$action] = $callback;
-        }
-    }
+   
 
     /**
      * Initialize the account interface.
@@ -86,25 +69,7 @@ class WizardAccount extends WizardTabs {
         }
     }
 
-    /**
-     * Handle form submissions with proper nonce verification.
-     */
-    private function handle_form_submission() {
-        $action = sanitize_key($_POST['wizard_form_action']);
-        $nonce_key = 'wizard_' . $action . '_nonce';
-        $nonce_action = 'wizard_' . $action;
-
-        if (!isset($_POST[$nonce_key]) || !wp_verify_nonce($_POST[$nonce_key], $nonce_action)) {
-            $this->add_message('error', 'Security verification failed.');
-            return;
-        }
-
-        if (isset($this->handlers[$action])) {
-            call_user_func($this->handlers[$action]);
-        } else {
-            $this->add_message('error', 'Invalid form action.');
-        }
-    }
+    
 
     /**
      * Register the default account management tabs.
@@ -135,6 +100,137 @@ class WizardAccount extends WizardTabs {
         ]);
     }
 
+   
+
+    /**
+     * Register default form handlers for account actions.
+     * Handlers match the value of the hidden input field name="wizard_form_action" in each tab template file form.
+     * Example: <input type="hidden" name="wizard_form_action" value="update_account">
+     */
+    private function register_default_handlers()
+    {
+        $this->register_form_handler('update_account', array($this, 'process_account_update'));
+        // add more handlers for more forms in other tabs here when needed
+    }
+
+    /**
+     * Register a form handler callback for a specific action.
+     * 
+     * @param string   $action   The form action identifier
+     * @param callable $callback The function to handle the form submission
+     */
+    public function register_form_handler($action, $callback)
+    {
+        if (is_callable($callback)) {
+            $this->handlers[$action] = $callback;
+        }
+    }
+
+    /**
+     * Handle form submissions with proper nonce verification.
+     */
+    private function handle_form_submission()
+    {
+        $action = sanitize_key($_POST['wizard_form_action']);
+
+        $processor = new WizardFormValidator($action);
+
+        if (!$processor->verify_nonce()) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        if (isset($this->handlers[$action])) {
+            call_user_func($this->handlers[$action], $processor);
+        } else {
+            $this->add_message('error', 'Invalid form action.');
+        }
+    }
+
+    /**
+     * Process account update form submissions.
+     * 
+     * @param WizardFormValidator $processor Form processor instance
+     */
+    public function process_account_update($processor) {
+        $user_id = $this->user->ID;
+        $updated = false;
+
+        // Define field validation rules
+        $fields = [
+            'first_name' => ['type' => 'text'],
+            'last_name' => ['type' => 'text'],
+            'display_name' => ['type' => 'text'],
+            'user_email' => ['type' => 'email'],
+            'current_password' => ['type' => 'password'],
+            'new_password' => ['type' => 'password', 'confirm_field' => 'confirm_password']
+        ];
+
+        // Process standard fields
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            
+            // Handle avatar upload if present
+            if (!empty($_FILES['avatar']['name'])) {
+                $avatar_id = $processor->process_file('avatar', 
+                    ['jpg', 'jpeg', 'png', 'gif'], 
+                    5 * 1024 * 1024
+                );
+
+                if ($avatar_id && !is_wp_error($avatar_id)) {
+                    $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
+                    if ($existing_avatar_id) {
+                        wp_delete_attachment($existing_avatar_id, true);
+                    }
+                    update_user_meta($user_id, 'local_avatar', $avatar_id);
+                    $updated = true;
+                }
+            }
+
+            // Handle avatar deletion
+            if (isset($_POST['delete_avatar'])) {
+                $avatar_id = get_user_meta($user_id, 'local_avatar', true);
+                if ($avatar_id) {
+                    wp_delete_attachment($avatar_id, true);
+                    delete_user_meta($user_id, 'local_avatar');
+                    $updated = true;
+                }
+            }
+
+            // Update user data
+            $user_data = array_intersect_key($data, array_flip(['first_name', 'last_name', 'display_name', 'user_email']));
+            
+            // Handle password update
+            if (!empty($data['current_password']) && !empty($data['new_password'])) {
+                if (wp_check_password($data['current_password'], $this->user->data->user_pass, $user_id)) {
+                    $user_data['user_pass'] = $data['new_password'];
+                } else {
+                    $this->add_message('error', 'Current password is incorrect.');
+                    return;
+                }
+            }
+
+            if (!empty($user_data)) {
+                $user_data['ID'] = $user_id;
+                $result = wp_update_user($user_data);
+                
+                if (is_wp_error($result)) {
+                    $this->add_message('error', $result->get_error_message());
+                    return;
+                }
+                $updated = true;
+            }
+
+            if ($updated) {
+                $this->add_message('success', 'Account information updated successfully.');
+            }
+        } else {
+            foreach ($processor->get_errors() as $error) {
+                $this->add_message('error', $error);
+            }
+        }
+    }
+
     /**
      * Add a message to be displayed to the user.
      * 
@@ -143,143 +239,19 @@ class WizardAccount extends WizardTabs {
      * @param string $type The message type ('error', 'success', etc.)
      * @param string $text The message text to display
      */
-    private function add_message($type, $text) {
+    private function add_message($type, $text)
+    {
         $message = [
             'type' => $type,
             'text' => $text
         ];
-        
+
         if (defined('DOING_AJAX') || headers_sent()) {
             $this->messages[] = $message;
         } else {
             set_transient('wizard_account_message_' . get_current_user_id(), $message, 60);
             wp_safe_redirect(add_query_arg('wizard_message', '1', remove_query_arg(array_keys($_GET))));
             exit;
-        }
-    }
-
-    /**
-     * Process account update form submissions.
-     * 
-     * Handles user data updates including:
-     * - Basic user information (name, email)
-     * - Password changes
-     * - Avatar upload and deletion
-     * 
-     * Validates input data, processes file uploads, and updates user meta.
-     * Redirects with appropriate success/error messages after processing.
-     * 
-     * @return void
-     */
-    public function process_account_update() {
-        $user_id = $this->user->ID;
-        $user_data = array();
-        $updated = false;
-
-        // Handle avatar upload
-        if (!empty($_FILES['avatar']['name'])) {
-            // Check file type
-            $file_type = wp_check_filetype($_FILES['avatar']['name']);
-            if (!in_array($file_type['ext'], array('jpg', 'jpeg', 'png', 'gif'))) {
-                $this->add_message('error', 'Invalid file type. Please upload an image file (JPG, PNG, or GIF).');
-                return;
-            }
-
-            // Check file size (5MB limit)
-            if ($_FILES['avatar']['size'] > 5 * 1024 * 1024) {
-                $this->add_message('error', 'File is too large. Maximum size is 5MB.');
-                return;
-            }
-
-            // Load required WordPress file handling functions
-            if (!function_exists('wp_handle_upload')) {
-                require_once(ABSPATH . 'wp-admin/includes/file.php');
-                require_once(ABSPATH . 'wp-admin/includes/image.php');
-                require_once(ABSPATH . 'wp-admin/includes/media.php');
-            }
-
-            // Delete existing avatar if present
-            $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
-            if ($existing_avatar_id) {
-                wp_delete_attachment($existing_avatar_id, true);
-            }
-
-            // Upload and process the new avatar
-            $avatar_id = media_handle_upload('avatar', 0);
-
-            if (is_wp_error($avatar_id)) {
-                $this->add_message('error', 'Failed to upload avatar: ' . $avatar_id->get_error_message());
-                return;
-            }
-
-            update_user_meta($user_id, 'local_avatar', $avatar_id);
-            $updated = true;
-        }
-
-        // Handle avatar deletion request
-        if (isset($_POST['delete_avatar'])) {
-            $avatar_id = get_user_meta($user_id, 'local_avatar', true);
-            if ($avatar_id) {
-                wp_delete_attachment($avatar_id, true);
-                delete_user_meta($user_id, 'local_avatar');
-                $updated = true;
-            }
-        }
-
-        // Process basic user information updates
-        if (isset($_POST['first_name'])) {
-            $user_data['first_name'] = sanitize_text_field($_POST['first_name']);
-            update_user_meta($user_id, 'first_name', $user_data['first_name']);
-            $updated = true;
-        }
-
-        if (isset($_POST['last_name'])) {
-            $user_data['last_name'] = sanitize_text_field($_POST['last_name']);
-            update_user_meta($user_id, 'last_name', $user_data['last_name']);
-            $updated = true;
-        }
-
-        if (isset($_POST['display_name'])) {
-            $user_data['display_name'] = sanitize_text_field($_POST['display_name']);
-            $updated = true;
-        }
-
-        if (isset($_POST['user_email']) && is_email($_POST['user_email'])) {
-            $user_data['user_email'] = sanitize_email($_POST['user_email']);
-            $updated = true;
-        }
-
-        // Handle password update if provided
-        if (!empty($_POST['current_password']) && !empty($_POST['new_password'])) {
-            $user = get_user_by('id', $user_id);
-            if (wp_check_password($_POST['current_password'], $user->data->user_pass, $user_id)) {
-                if ($_POST['new_password'] === $_POST['confirm_password']) {
-                    $user_data['user_pass'] = $_POST['new_password'];
-                    $updated = true;
-                } else {
-                    $this->add_message('error', 'New passwords do not match.');
-                }
-            } else {
-                $this->add_message('error', 'Current password is incorrect.');
-            }
-        }
-
-        // Update user data if changes were made
-        if (!empty($user_data)) {
-            $user_data['ID'] = $user_id;
-            $result = wp_update_user($user_data);
-            
-            if (is_wp_error($result)) {
-                $this->add_message('error', $result->get_error_message());
-            } else {
-                $updated = true;
-            }
-        }
-
-        // Send success message if any updates were made
-        if ($updated) {
-            $this->add_message('success', 'Account information updated successfully.');
-            return;
         }
     }
 }
