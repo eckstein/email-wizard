@@ -1,41 +1,92 @@
 <?php
+/**
+ * Custom template loader for the Wizard plugin.
+ * 
+ * Handles template loading with theme override support following WordPress template hierarchy.
+ * Templates can be overridden by placing them in: theme-directory/wizard/{template-path}
+ * 
+ * @since 1.0.0
+ */
 add_filter('template_include', function ($template) {
     // Define template mappings
     $template_mappings = [
         [
             'condition' => 'is_singular',
             'type' => 'wiz_template',
-            'path' => 'public/templates/single-template/single-wiz_template.php'
+            'path' => 'single-template/single-wiz_template.php'
         ],
         [
             'condition' => 'is_post_type_archive',
             'type' => 'wiz_template',
-            'path' => 'public/templates/template-archive/archive-wiz_template.php'
+            'path' => 'template-archive/archive-wiz_template.php'
         ],
         [
             'condition' => 'url_contains',
             'type' => '/account',
-            'path' => 'public/templates/account/page-account.php',
+            'path' => 'account/page-account.php',
             'set_global' => 'wizard_account_page'
         ],
         [
             'condition' => 'url_contains',
             'type' => '/team-settings',
-            'path' => 'public/templates/teams/page-team-settings.php',
+            'path' => 'teams/page-teams.php',
             'set_global' => 'wizard_team_settings_page'
         ]
     ];
 
-    // Helper function to check template and handle errors
-    $check_template = function($path) {
-        $full_path = plugin_dir_path(dirname(__FILE__)) . $path;
+    /**
+     * Locate template in theme or plugin directories.
+     * 
+     * @param string $template_path Relative path to the template
+     * @return string|false Full path to the template or false if not found
+     */
+    $locate_template = function($template_path) {
+        // Check theme directory first
+        $theme_template = locate_template([
+            'wizard/' . $template_path
+        ]);
         
-        if (!file_exists($full_path)) {
-            wp_die('Template file does not exist: ' . $full_path);
+        if ($theme_template) {
+            return $theme_template;
+        }
+
+        // Check plugin directory
+        $plugin_template = plugin_dir_path(dirname(__FILE__)) . 'public/templates/' . $template_path;
+        
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+
+        return false;
+    };
+
+    /**
+     * Check template and handle errors.
+     * 
+     * @param string $template_path Path to the template file
+     * @return string Full path to the valid template
+     */
+    $check_template = function($template_path) use ($locate_template) {
+        $full_path = $locate_template($template_path);
+        
+        if (!$full_path) {
+            wp_die(sprintf(
+                'Uh oh, spaghettios! 🍝<br><br>
+                Template not found: <code>%s</code><br><br>
+                To fix this, create the template in either:<br>
+                - Your theme: <code>wp-content/themes/YOUR_THEME/wizard/%s</code><br>
+                - Plugin: <code>wizard/public/templates/%s</code>',
+                esc_html($template_path),
+                esc_html($template_path),
+                esc_html($template_path)
+            ), 'Template Not Found 🔍');
         }
         
         if (filesize($full_path) == 0) {
-            wp_die('Uh oh, Spaghettios! Content for this template is missing.');
+            wp_die(sprintf(
+                'This template file exists but is empty: <code>%s</code>',
+                esc_html(basename($full_path))
+            ), 'Empty Template File 📄');
         }
         
         return $full_path;

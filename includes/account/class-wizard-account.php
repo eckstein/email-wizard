@@ -1,21 +1,26 @@
 <?php
-// Initialize the account page
-add_action('template_redirect', function() {
-    global $wizard_account_page;
-    if ($wizard_account_page) {
-        $account = new WizardAccount();
-        $account->init();
-    }
-});
+/**
+ * Account management interface with tabbed navigation.
+ * 
+ * Extends the WizardTabs base class to provide account-specific functionality
+ * including form handling, user data management, and account settings templates.
+ * 
+ * @since 1.0.0
+ */
 
+// Require the WizardTabs interface
 require_once plugin_dir_path(dirname(__FILE__)) . 'interface/class-wizard-tabs.php';
 
-class WizardAccount extends WizardTabs
-{
+class WizardAccount extends WizardTabs {
+    /** @var WP_User Current WordPress user object */
     private $user;
 
-    public function __construct()
-    {
+    /**
+     * Initialize the account interface.
+     * 
+     * Sets up tabs, handlers, and user data if authorized.
+     */
+    public function __construct() {
         parent::__construct();
         
         if ($this->is_authorized) {
@@ -25,27 +30,49 @@ class WizardAccount extends WizardTabs
         }
     }
 
-    protected function get_container_id()
-    {
+    /**
+     * Get the container ID for the account tabs interface.
+     * 
+     * @return string Container ID
+     */
+    protected function get_container_id() {
         return 'account-menu-tabs';
     }
 
-    private function register_default_handlers()
-    {
-        $this->register_form_handler('update_account', array($this, 'process_account_update'));
-        // Future handlers will be registered here
-        // $this->register_form_handler('update_team', array($this, 'process_team_update'));
+    /**
+     * Get the template base directory for account templates.
+     * 
+     * @return string Template base directory name
+     */
+    protected function get_template_base() {
+        return 'account';
     }
 
-    public function register_form_handler($action, $callback)
-    {
+    /**
+     * Register default form handlers for account actions.
+     */
+    private function register_default_handlers() {
+        $this->register_form_handler('update_account', array($this, 'process_account_update'));
+    }
+
+    /**
+     * Register a form handler callback for a specific action.
+     * 
+     * @param string   $action   The form action identifier
+     * @param callable $callback The function to handle the form submission
+     */
+    public function register_form_handler($action, $callback) {
         if (is_callable($callback)) {
             $this->handlers[$action] = $callback;
         }
     }
 
-    public function init()
-    {
+    /**
+     * Initialize the account interface.
+     * 
+     * Handles form submissions and message display.
+     */
+    public function init() {
         if (isset($_POST['wizard_form_action'])) {
             $this->handle_form_submission();
         }
@@ -59,8 +86,10 @@ class WizardAccount extends WizardTabs
         }
     }
 
-    private function handle_form_submission()
-    {
+    /**
+     * Handle form submissions with proper nonce verification.
+     */
+    private function handle_form_submission() {
         $action = sanitize_key($_POST['wizard_form_action']);
         $nonce_key = 'wizard_' . $action . '_nonce';
         $nonce_action = 'wizard_' . $action;
@@ -77,39 +106,44 @@ class WizardAccount extends WizardTabs
         }
     }
 
-    private function register_default_tabs()
-    {
+    /**
+     * Register the default account management tabs.
+     */
+    private function register_default_tabs() {
         $this->add_tab([
             'id' => 'account',
             'title' => 'Your Info',
-            'icon' => 'fa-solid fa-user',
-            'template' => 'tab-account.php'
+            'icon' => 'fa-solid fa-user'
         ]);
 
         $this->add_tab([
             'id' => 'teams',
             'title' => 'Your Teams',
-            'icon' => 'fa-solid fa-users',
-            'template' => 'tab-teams.php'
+            'icon' => 'fa-solid fa-users'
         ]);
 
         $this->add_tab([
             'id' => 'plan',
             'title' => 'Manage Plan',
-            'icon' => 'fa-solid fa-sliders',
-            'template' => 'tab-plan.php'
+            'icon' => 'fa-solid fa-sliders'
         ]);
 
         $this->add_tab([
             'id' => 'billing',
             'title' => 'Billing Settings',
-            'icon' => 'fa-solid fa-credit-card',
-            'template' => 'tab-billing.php'
+            'icon' => 'fa-solid fa-credit-card'
         ]);
     }
 
-    private function add_message($type, $text)
-    {
+    /**
+     * Add a message to be displayed to the user.
+     * 
+     * Handles both immediate display and redirect scenarios using transients.
+     * 
+     * @param string $type The message type ('error', 'success', etc.)
+     * @param string $text The message text to display
+     */
+    private function add_message($type, $text) {
         $message = [
             'type' => $type,
             'text' => $text
@@ -124,13 +158,25 @@ class WizardAccount extends WizardTabs
         }
     }
 
-    public function process_account_update()
-    {
+    /**
+     * Process account update form submissions.
+     * 
+     * Handles user data updates including:
+     * - Basic user information (name, email)
+     * - Password changes
+     * - Avatar upload and deletion
+     * 
+     * Validates input data, processes file uploads, and updates user meta.
+     * Redirects with appropriate success/error messages after processing.
+     * 
+     * @return void
+     */
+    public function process_account_update() {
         $user_id = $this->user->ID;
         $user_data = array();
         $updated = false;
 
-        // Handle avatar upload first
+        // Handle avatar upload
         if (!empty($_FILES['avatar']['name'])) {
             // Check file type
             $file_type = wp_check_filetype($_FILES['avatar']['name']);
@@ -145,19 +191,20 @@ class WizardAccount extends WizardTabs
                 return;
             }
 
+            // Load required WordPress file handling functions
             if (!function_exists('wp_handle_upload')) {
                 require_once(ABSPATH . 'wp-admin/includes/file.php');
                 require_once(ABSPATH . 'wp-admin/includes/image.php');
                 require_once(ABSPATH . 'wp-admin/includes/media.php');
             }
 
-            // Delete existing avatar first
+            // Delete existing avatar if present
             $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
             if ($existing_avatar_id) {
                 wp_delete_attachment($existing_avatar_id, true);
             }
 
-            // Upload the file
+            // Upload and process the new avatar
             $avatar_id = media_handle_upload('avatar', 0);
 
             if (is_wp_error($avatar_id)) {
@@ -165,13 +212,11 @@ class WizardAccount extends WizardTabs
                 return;
             }
 
-            // Update user meta with new avatar
             update_user_meta($user_id, 'local_avatar', $avatar_id);
-            
             $updated = true;
         }
 
-        // Handle avatar deletion if requested
+        // Handle avatar deletion request
         if (isset($_POST['delete_avatar'])) {
             $avatar_id = get_user_meta($user_id, 'local_avatar', true);
             if ($avatar_id) {
@@ -181,7 +226,7 @@ class WizardAccount extends WizardTabs
             }
         }
 
-        // Handle basic user data updates
+        // Process basic user information updates
         if (isset($_POST['first_name'])) {
             $user_data['first_name'] = sanitize_text_field($_POST['first_name']);
             update_user_meta($user_id, 'first_name', $user_data['first_name']);
@@ -219,7 +264,7 @@ class WizardAccount extends WizardTabs
             }
         }
 
-        // Update user data if we have changes
+        // Update user data if changes were made
         if (!empty($user_data)) {
             $user_data['ID'] = $user_id;
             $result = wp_update_user($user_data);
@@ -231,10 +276,10 @@ class WizardAccount extends WizardTabs
             }
         }
 
-        // Update success message handling
+        // Send success message if any updates were made
         if ($updated) {
             $this->add_message('success', 'Account information updated successfully.');
-            return; // The add_message method will handle the redirect
+            return;
         }
     }
 }
