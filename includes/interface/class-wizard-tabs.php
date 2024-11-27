@@ -115,9 +115,12 @@ abstract class WizardTabs {
      * @return string HTML markup for the tab list
      */
     protected function generate_tab_list() {
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : '';
+        
         $output = '<ul class="wizard-tabs-list">';
         foreach ($this->tabs as $index => $tab) {
-            $active = $index === 0 ? 'class="active"' : '';
+            $is_active = $active_tab ? ($tab['id'] === str_replace('tab-', '', $active_tab)) : ($index === 0);
+            $active = $is_active ? 'class="active"' : '';
             $output .= sprintf(
                 '<li data-tab="tab-%s" %s>
                     <i class="%s"></i>
@@ -144,13 +147,17 @@ abstract class WizardTabs {
             return '<p>' . esc_html__('You must be logged in to view this page.', 'wizard') . '</p>';
         }
 
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : '';
+
         ob_start();
         ?>
         <div class="wizard-tabs" id="<?php echo $this->get_container_id(); ?>">
             <?php echo $this->generate_tab_list(); ?>
             <div class="wizard-tab-panels">
-                <?php foreach ($this->tabs as $index => $tab) { ?>
-                    <div class="wizard-tab-content <?php echo $index === 0 ? 'active' : ''; ?>"
+                <?php foreach ($this->tabs as $index => $tab) { 
+                    $is_active = $active_tab ? ($tab['id'] === str_replace('tab-', '', $active_tab)) : ($index === 0);
+                ?>
+                    <div class="wizard-tab-content <?php echo $is_active ? 'active' : ''; ?>"
                         data-content="tab-<?php echo esc_attr($tab['id']); ?>">
                         <?php echo $this->load_tab_template($tab['template_paths']); ?>
                     </div>

@@ -109,8 +109,12 @@ class WizardAccount extends WizardTabs {
      */
     private function register_default_handlers()
     {
-        $this->register_form_handler('update_account', array($this, 'process_account_update'));
-        // add more handlers for more forms in other tabs here when needed
+        $this->handlers = array(
+            'update_account' => array($this, 'process_account_update'),
+            'update_team_settings' => array($this, 'process_team_update'),
+            'update_member_role' => array($this, 'process_member_role_update'),
+            'remove_team_member' => array($this, 'process_member_removal')
+        );
     }
 
     /**
@@ -252,6 +256,146 @@ class WizardAccount extends WizardTabs {
             set_transient('wizard_account_message_' . get_current_user_id(), $message, 60);
             wp_safe_redirect(add_query_arg('wizard_message', '1', remove_query_arg(array_keys($_GET))));
             exit;
+        }
+    }
+
+    /**
+     * Process team update form submissions.
+     */
+    public function process_team_update($processor) {
+        if (!$processor->verify_nonce('wizard_update_team_settings')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'team_name' => ['type' => 'text', 'required' => true],
+            'team_description' => ['type' => 'text', 'required' => false]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            $team_id = absint($data['team_id']);
+            
+            $teams = new WizardTeams();
+            $team = $teams->get_team($team_id);
+
+            if (is_wp_error($team) || !$teams->is_team_admin($team_id, get_current_user_id())) {
+                $this->add_message('error', 'You do not have permission to edit this team');
+                return;
+            }
+
+            // Handle team updates
+            $update_data = array(
+                'name' => $data['team_name'],
+                'description' => $data['team_description']
+            );
+
+            $result = $teams->update_team($team_id, $update_data);
+            if (is_wp_error($result)) {
+                $this->add_message('error', $result->get_error_message());
+                return;
+            }
+
+            // Handle file upload if present
+            if (!empty($_FILES['team_avatar']['name'])) {
+                $avatar_id = $processor->process_file('team_avatar', 
+                    ['jpg', 'jpeg', 'png', 'gif'], 
+                    5 * 1024 * 1024
+                );
+                
+                if (is_wp_error($avatar_id)) {
+                    $this->add_message('error', $avatar_id->get_error_message());
+                    return;
+                }
+                
+                $result = $teams->update_team_avatar($team_id, $avatar_id);
+                if (is_wp_error($result)) {
+                    wp_delete_attachment($avatar_id, true);
+                    $this->add_message('error', $result->get_error_message());
+                    return;
+                }
+            }
+
+            // Handle avatar deletion
+            if (isset($_POST['delete_team_avatar'])) {
+                $result = $teams->delete_team_avatar($team_id);
+                if (is_wp_error($result)) {
+                    $this->add_message('error', $result->get_error_message());
+                    return;
+                }
+            }
+
+            $this->add_message('success', 'Team settings updated successfully.');
+        } else {
+            foreach ($processor->get_errors() as $error) {
+                $this->add_message('error', $error);
+            }
+        }
+    }
+
+    /**
+     * Process member role update form submissions.
+     */
+    public function process_member_role_update($processor) {
+        if (!$processor->verify_nonce('wizard_update_member_role')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'user_id' => ['type' => 'number', 'required' => true],
+            'member_role' => ['type' => 'text', 'required' => true]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            $teams = new WizardTeams();
+            
+            $result = $teams->update_member_role(
+                absint($data['team_id']), 
+                absint($data['user_id']), 
+                $data['member_role']
+            );
+
+            if (is_wp_error($result)) {
+                $this->add_message('error', $result->get_error_message());
+            } else {
+                $this->add_message('success', 'Member role updated successfully.');
+            }
+        }
+    }
+
+    /**
+     * Process member removal form submissions.
+     */
+    public function process_member_removal($processor) {
+        if (!$processor->verify_nonce('wizard_remove_team_member')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'user_id' => ['type' => 'number', 'required' => true]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            $teams = new WizardTeams();
+            
+            $result = $teams->remove_team_member(
+                absint($data['team_id']), 
+                absint($data['user_id'])
+            );
+
+            if (is_wp_error($result)) {
+                $this->add_message('error', $result->get_error_message());
+            } else {
+                $this->add_message('success', 'Team member removed successfully.');
+            }
         }
     }
 }

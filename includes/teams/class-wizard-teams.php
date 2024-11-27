@@ -163,28 +163,14 @@ class WizardTeams
             return new WP_Error('invalid_team', 'Team does not exist.');
         }
 
-        $update_data = array();
-        $format = array();
-
-        if (isset($team_data['name'])) {
-            $update_data['name'] = sanitize_text_field($team_data['name']);
-            $format[] = '%s';
-        }
-
-        if (isset($team_data['description'])) {
-            $update_data['description'] = sanitize_textarea_field($team_data['description']);
-            $format[] = '%s';
-        }
-
-        if (empty($update_data)) {
-            return new WP_Error('no_update_data', 'No valid update data provided.');
-        }
-
         $result = $this->wpdb->update(
             $this->wpdb->prefix . 'teams',
-            $update_data,
+            array(
+                'name' => $team_data['name'],
+                'description' => $team_data['description']
+            ),
             array('id' => $team_id),
-            $format,
+            array('%s', '%s'),
             array('%d')
         );
 
@@ -196,7 +182,7 @@ class WizardTeams
     }
 
     /**
-     * Remove a member from a team
+     * Remove team member
      * 
      * @param int $team_id Team ID
      * @param int $user_id User ID
@@ -204,26 +190,29 @@ class WizardTeams
      */
     public function remove_team_member($team_id, $user_id)
     {
-        if (!$this->is_team_member($team_id, $user_id)) {
-            return new WP_Error('not_member', 'User is not a team member.');
+        // Check if user is team owner (created_by)
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team)) {
+            return $team;
         }
 
-        $result = $this->wpdb->update(
+        if ($team->created_by == $user_id) {
+            return new WP_Error('remove_owner', 'Cannot remove team owner.');
+        }
+
+        $result = $this->wpdb->delete(
             $this->wpdb->prefix . 'team_members',
-            array('status' => 'inactive'),
-            array(
+            [
                 'team_id' => $team_id,
                 'user_id' => $user_id
-            ),
-            array('%s'),
-            array('%d', '%d')
+            ],
+            ['%d', '%d']
         );
 
         if ($result === false) {
-            return new WP_Error('member_remove_failed', 'Failed to remove team member: ' . $this->wpdb->last_error);
+            return new WP_Error('delete_failed', 'Failed to remove team member: ' . $this->wpdb->last_error);
         }
 
-        do_action('wizard_team_member_removed', $team_id, $user_id);
         return true;
     }
 
@@ -420,6 +409,38 @@ class WizardTeams
         return $role;
     }
 
+    /**
+     * Update team member role
+     * 
+     * @param int $team_id Team ID
+     * @param int $user_id User ID
+     * @param string $role New role (admin or member)
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function update_member_role($team_id, $user_id, $role)
+    {
+        if (!in_array($role, ['admin', 'member'])) {
+            return new WP_Error('invalid_role', 'Invalid role specified.');
+        }
+
+        $result = $this->wpdb->update(
+            $this->wpdb->prefix . 'team_members',
+            ['role' => $role],
+            [
+                'team_id' => $team_id,
+                'user_id' => $user_id
+            ],
+            ['%s'],
+            ['%d', '%d']
+        );
+
+        if ($result === false) {
+            return new WP_Error('update_failed', 'Failed to update member role: ' . $this->wpdb->last_error);
+        }
+
+        return true;
+    }
+
     public function is_regular_member($team_id, $user_id) {
         $role = $this->get_member_role($team_id, $user_id);
         return $role === 'member';
@@ -544,5 +565,19 @@ class WizardTeams
             $size,
             esc_html(substr($team->name, 0, 1))
         );
+    }
+
+    /**
+     * Check if team has a custom avatar
+     * 
+     * @param int $team_id Team ID
+     * @return bool True if team has custom avatar
+     */
+    public function has_team_avatar($team_id) {
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team)) {
+            return false;
+        }
+        return !empty($team->avatar);
     }
 }

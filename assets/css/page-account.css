@@ -164,3 +164,134 @@
     align-items: center;
     gap: 5px;
 }
+
+/* Team Management Styles */
+.avatar-upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.wizard-team-avatar {
+    position: relative;
+}
+
+.wizard-team-avatar:hover .avatar-upload-overlay {
+    opacity: 1;
+}
+
+.avatar-upload-overlay input[type="file"] {
+    display: none;
+}
+
+.team-name-input {
+    font-size: 18px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    padding: 5px 8px;
+    border-radius: 4px;
+    width: 100%;
+    background: transparent;
+}
+
+.team-name-input:hover,
+.team-name-input:focus {
+    border-color: var(--border-color);
+    background: white;
+}
+
+.team-description-input {
+    width: 100%;
+    min-height: 60px;
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 14px;
+}
+
+.team-edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* Team Member Management */
+.team-members-management {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.team-members-management h2 {
+    margin-bottom: 20px;
+}
+
+.team-member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.member-info img {
+    border-radius: 50%;
+}
+
+.member-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name {
+    font-weight: 600;
+}
+
+.member-email {
+    color: #666;
+    font-size: 14px;
+}
+
+.member-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.member-role-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.member-role-select {
+    padding: 6px 10px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.member-remove-form {
+    margin-left: 10px;
+}

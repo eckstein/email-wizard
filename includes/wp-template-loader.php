@@ -25,12 +25,6 @@ add_filter('template_include', function ($template) {
             'type' => '/account',
             'path' => 'account/page-account.php',
             'set_global' => 'wizard_account_page'
-        ],
-        [
-            'condition' => 'url_contains',
-            'type' => '/team-settings',
-            'path' => 'teams/page-teams.php',
-            'set_global' => 'wizard_team_settings_page'
         ]
     ];
 
