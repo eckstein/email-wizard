@@ -22,15 +22,19 @@ class WizardTeams
             return new WP_Error('missing_required_fields', 'Name and creator are required.');
         }
 
+        // Get default avatar
+        $default_avatar_id = get_option('wizard_default_avatar');
+
         $result = $this->wpdb->insert(
             $this->wpdb->prefix . 'teams',
             array(
                 'name' => sanitize_text_field($team_data['name']),
                 'description' => isset($team_data['description']) ? sanitize_textarea_field($team_data['description']) : '',
                 'created_by' => absint($team_data['created_by']),
+                'avatar' => $default_avatar_id ? absint($default_avatar_id) : null,
                 'status' => 'active'
             ),
-            array('%s', '%s', '%d', '%s')
+            array('%s', '%s', '%d', '%d', '%s')
         );
 
         if ($result === false) {
@@ -419,5 +423,126 @@ class WizardTeams
     public function is_regular_member($team_id, $user_id) {
         $role = $this->get_member_role($team_id, $user_id);
         return $role === 'member';
+    }
+
+    /**
+     * Update team avatar
+     * 
+     * @param int $team_id Team ID
+     * @param int $attachment_id WordPress attachment ID for avatar
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function update_team_avatar($team_id, $attachment_id) {
+        if (!$this->team_exists($team_id)) {
+            return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        // Delete old avatar if exists
+        $this->delete_team_avatar($team_id);
+
+        $result = $this->wpdb->update(
+            $this->wpdb->prefix . 'teams',
+            array('avatar' => $attachment_id),
+            array('id' => $team_id),
+            array('%d'),
+            array('%d')
+        );
+
+        if ($result === false) {
+            return new WP_Error('avatar_update_failed', 'Failed to update team avatar: ' . $this->wpdb->last_error);
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete team avatar
+     * 
+     * @param int $team_id Team ID
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function delete_team_avatar($team_id) {
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team)) {
+            return $team;
+        }
+
+        if ($team->avatar) {
+            wp_delete_attachment($team->avatar, true);
+        }
+
+        $result = $this->wpdb->update(
+            $this->wpdb->prefix . 'teams',
+            array('avatar' => null),
+            array('id' => $team_id),
+            array('%d'),
+            array('%d')
+        );
+
+        if ($result === false) {
+            return new WP_Error('avatar_delete_failed', 'Failed to delete team avatar: ' . $this->wpdb->last_error);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get team avatar URL
+     * 
+     * @param int $team_id Team ID
+     * @param int $size Avatar size in pixels
+     * @return string|false Avatar URL or false if no avatar
+     */
+    public function get_team_avatar_url($team_id, $size = 96) {
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team) || !$team->avatar) {
+            return false;
+        }
+
+        return wp_get_attachment_image_url($team->avatar, array($size, $size));
+    }
+
+    /**
+     * Get team avatar HTML
+     * 
+     * @param int $team_id Team ID
+     * @param int $size Avatar size in pixels
+     * @return string Avatar HTML
+     */
+    public function get_team_avatar($team_id, $size = 96) {
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team)) {
+            return '';
+        }
+
+        // First try team's specific avatar
+        if ($team->avatar) {
+            $image_url = wp_get_attachment_image_url($team->avatar, array($size, $size));
+            if ($image_url) {
+                return wp_get_attachment_image($team->avatar, array($size, $size), false, array(
+                    'class' => 'team-avatar',
+                    'alt' => esc_attr($team->name) . ' team avatar'
+                ));
+            }
+        }
+
+        // If no team avatar, try default avatar
+        $default_avatar_id = get_option('wizard_default_avatar');
+        if ($default_avatar_id) {
+            $image_url = wp_get_attachment_image_url($default_avatar_id, array($size, $size));
+            if ($image_url) {
+                return wp_get_attachment_image($default_avatar_id, array($size, $size), false, array(
+                    'class' => 'team-avatar',
+                    'alt' => esc_attr($team->name) . ' team avatar'
+                ));
+            }
+        }
+
+        // Fallback to default avatar with first letter
+        return sprintf(
+            '<div class="team-avatar default-avatar" style="width: %1$dpx; height: %1$dpx;">%2$s</div>',
+            $size,
+            esc_html(substr($team->name, 0, 1))
+        );
     }
 }

@@ -59,27 +59,18 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-bottom: 30px;
-}
-
-
-
-.wizard-teams-empty {
-    text-align: center;
-    padding: 40px;
-    background: #f9f9f9;
-    border-radius: 8px;
-    color: #666;
+    margin-bottom: 20px;
 }
 
 .wizard-teams-list {
-    display: grid;
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .wizard-team-card {
     background: #fff;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     padding: 20px;
     transition: all 0.2s ease;
@@ -87,7 +78,36 @@
 
 .wizard-team-card.active {
     border-color: var(--teal);
-    background: #f8fffd;
+    box-shadow: 0 0 0 1px var(--teal);
+}
+
+.wizard-team-card-content {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.wizard-team-avatar {
+    flex-shrink: 0;
+}
+
+.wizard-team-avatar img,
+.wizard-team-avatar .default-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.wizard-team-info {
+    flex-grow: 1;
+    min-width: 0;
 }
 
 .wizard-team-card-header {
@@ -95,48 +115,52 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    gap: 15px;
 }
 
 .wizard-team-name {
     margin: 0;
     font-size: 18px;
-    color: #333;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .wizard-team-role {
+    flex-shrink: 0;
     font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
     font-weight: 500;
 }
 
 .wizard-team-role.admin {
-    background: #e7f4e4;
-    color: #287d1e;
+    background: var(--teal);
+    color: white;
 }
 
 .wizard-team-role.member {
-    background: #f0f0f0;
-    color: #666;
+    background: var(--cream);
+    color: var(--navy);
 }
 
 .wizard-team-description {
     color: #666;
     font-size: 14px;
-    margin: 10px 0;
+    margin: 0 0 15px 0;
 }
 
 .wizard-team-actions {
     display: flex;
+    gap: 10px;
     align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
 }
 
 .current-team-badge {
     color: var(--teal);
     font-size: 14px;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }

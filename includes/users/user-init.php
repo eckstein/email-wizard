@@ -26,8 +26,8 @@ add_action('user_register', 'wizard_user_register_actions');
 function wizard_user_register_actions($user_id) {
 	set_new_user_as_wizard($user_id);
 	set_user_email_as_username($user_id);
+	set_default_user_avatar($user_id);
 	create_default_user_team($user_id);
-	
 }
 
 function set_new_user_as_wizard( $user_id ) {
@@ -52,5 +52,12 @@ function remove_admin_bar_for_wizard_user()
 {
 	if (current_user_can('wizard_user') && ! current_user_can('administrator')) {
 		show_admin_bar(false);
+	}
+}
+
+function set_default_user_avatar($user_id) {
+	$default_avatar_id = get_option('wizard_default_avatar');
+	if ($default_avatar_id) {
+		update_user_meta($user_id, 'local_avatar', $default_avatar_id);
 	}
 }

@@ -34,3 +34,4 @@ temp/
 .parcel-cache/
 eslint.config.mjs
 .gitignore
+.cursorignore

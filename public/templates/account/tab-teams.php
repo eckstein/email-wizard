@@ -19,36 +19,43 @@ $currentTeam = $teamsManager->get_active_team(get_current_user_id());
         <div class="wizard-teams-list">
             <?php foreach ($userTeams as $team): ?>
                 <div class="wizard-team-card <?php echo ($team->id == $currentTeam) ? 'active' : ''; ?>">
-                    <div class="wizard-team-card-header">
-                        <h3 class="wizard-team-name"><?php echo esc_html($team->name); ?></h3>
-                        <?php if ($team->role === 'admin'): ?>
-                            <span class="wizard-team-role admin">Admin</span>
-                        <?php else: ?>
-                            <span class="wizard-team-role member">Member</span>
-                        <?php endif; ?>
-                    </div>
+                    <div class="wizard-team-card-content">
+                        <div class="wizard-team-avatar">
+                            <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                        </div>
+                        <div class="wizard-team-info">
+                            <div class="wizard-team-card-header">
+                                <h3 class="wizard-team-name"><?php echo esc_html($team->name); ?></h3>
+                                <?php if ($team->role === 'admin'): ?>
+                                    <span class="wizard-team-role admin">Admin</span>
+                                <?php else: ?>
+                                    <span class="wizard-team-role member">Member</span>
+                                <?php endif; ?>
+                            </div>
 
-                    <?php if (!empty($team->description)): ?>
-                        <p class="wizard-team-description"><?php echo esc_html($team->description); ?></p>
-                    <?php endif; ?>
+                            <?php if (!empty($team->description)): ?>
+                                <p class="wizard-team-description"><?php echo esc_html($team->description); ?></p>
+                            <?php endif; ?>
 
-                    <div class="wizard-team-actions">
-                        <?php if ($team->id != $currentTeam): ?>
-                            <button class="wizard-button small button-secondary switch-team-trigger"
-                                data-team-id="<?php echo esc_attr($team->id); ?>">
-                                <i class="fa-solid fa-shuffle"></i>&nbsp;&nbsp;Switch to Team
-                            </button>
-                        <?php else: ?>
-                            <span class="current-team-badge">
-                                <i class="fa-solid fa-check"></i>&nbsp;&nbsp;Current Team
-                            </span>
-                        <?php endif; ?>
+                            <div class="wizard-team-actions">
+                                <?php if ($team->id != $currentTeam): ?>
+                                    <button class="wizard-button small button-secondary switch-team-trigger"
+                                        data-team-id="<?php echo esc_attr($team->id); ?>">
+                                        <i class="fa-solid fa-shuffle"></i>&nbsp;&nbsp;Switch to Team
+                                    </button>
+                                <?php else: ?>
+                                    <span class="current-team-badge">
+                                        <i class="fa-solid fa-check"></i>&nbsp;&nbsp;Current Team
+                                    </span>
+                                <?php endif; ?>
 
-                        <?php if ($team->role === 'admin'): ?>
-                            <a href="#" class="wizard-button small button-text manage-team-trigger">
-                                <i class="fa-solid fa-gear"></i>&nbsp;&nbsp;Manage Team
-                            </a>
-                        <?php endif; ?>
+                                <?php if ($team->role === 'admin'): ?>
+                                    <a href="#" class="wizard-button small button-text manage-team-trigger">
+                                        <i class="fa-solid fa-gear"></i>&nbsp;&nbsp;Manage Team
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>

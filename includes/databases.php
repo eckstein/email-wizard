@@ -16,12 +16,14 @@ function create_wizard_tables()
         UNIQUE KEY post_id (post_id)
     ) $charset_collate;";
     dbDelta($sql);
+
     // Teams table
     $table_name = $wpdb->prefix . 'teams';
     $sql = "CREATE TABLE $table_name (
         id bigint(20) NOT NULL AUTO_INCREMENT,
         name varchar(255) NOT NULL,
         description text,
+        avatar varchar(255),
         created_by bigint(20) UNSIGNED NOT NULL,
         status varchar(20) NOT NULL DEFAULT 'active',
         created_at timestamp DEFAULT CURRENT_TIMESTAMP,
