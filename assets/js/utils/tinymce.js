@@ -5,7 +5,7 @@ import "tinymce/models/dom";
 // Set the base URL for TinyMCE resources
 tinymce.baseURL = "/tinymce";
 
-import { rename_single_folder } from "../components/fileExplorer/folders.js";
+import { rename_single_folder } from "../components/file-explorer/folders";
 import { addEventListenerIfExists } from "./functions";
 
 // Function to suppress passive event listener warnings

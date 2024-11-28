@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { wiz_toast } from "./swal2";
+import { wiz_toast } from "./ui/swal2";
 
 export {
 	addEventListenerIfExists,

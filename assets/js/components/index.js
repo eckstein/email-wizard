@@ -6,7 +6,7 @@ export {
 	restore_templates,
 	delete_templates_forever,
 	templateTableAPI
-} from './editor';
+} from './file-explorer/template-table-api';
 
 // Folder Operations
 export {
@@ -15,7 +15,7 @@ export {
 	create_new_wizard_folder,
 	rename_single_folder,
 	init_file_explorer
-} from './fileExplorer';
+} from './file-explorer/folders';
 
 // Item Operations
 export {
@@ -23,7 +23,7 @@ export {
 	delete_items,
 	show_delete_confirm,
 	show_restore_confirm
-} from './fileExplorer';
+} from './file-explorer/common';
 
 // Team Management
 export {
@@ -32,4 +32,4 @@ export {
 	show_create_team_dialog,
 	createTeamRequest,
 	switch_team
-} from './teams';
+} from './teams/teams-actions';

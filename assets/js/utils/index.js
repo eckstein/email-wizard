@@ -1,7 +1,7 @@
 // UI Related Utilities
-export { toggle_wizard_dropdown, hide_wizard_dropdown } from './dropdown';
-export { switch_wizard_tab } from './tabs';
-export { init_slideover } from './slideover';
+export { toggle_wizard_dropdown, hide_wizard_dropdown } from './ui/dropdown';
+export { switch_wizard_tab } from './ui/tabs';
+export { init_slideover } from './ui/slideover';
 
 // Form & Input Handling
 export { dd_repeater_row, remove_repeater_row } from './forms';
@@ -19,7 +19,7 @@ export {
     show_success_toast,
     show_error_toast,
     checkUrlParamsForToasts 
-} from './swal2';
+} from './ui/swal2';
 
 // Editor Configuration
 export { init_editable_folder_titles } from './tinymce';
