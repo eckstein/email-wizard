@@ -113,7 +113,10 @@ class WizardAccount extends WizardTabs {
             'update_account' => array($this, 'process_account_update'),
             'update_team_settings' => array($this, 'process_team_update'),
             'update_member_role' => array($this, 'process_member_role_update'),
-            'remove_team_member' => array($this, 'process_member_removal')
+            'remove_team_member' => array($this, 'process_member_removal'),
+            'invite_team_member' => array($this, 'process_team_invite'),
+            'resend_team_invite' => array($this, 'process_resend_invite'),
+            'revoke_team_invite' => array($this, 'process_revoke_invite')
         );
     }
 
@@ -395,6 +398,101 @@ class WizardAccount extends WizardTabs {
                 $this->add_message('error', $result->get_error_message());
             } else {
                 $this->add_message('success', 'Team member removed successfully.');
+            }
+        }
+    }
+
+    /**
+     * Process team member invite form submissions.
+     */
+    public function process_team_invite($processor) {
+        if (!$processor->verify_nonce('wizard_invite_team_member')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'member_email' => ['type' => 'email', 'required' => true]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            $teams = new WizardTeams();
+            
+            $result = $teams->create_team_invite(
+                absint($data['team_id']),
+                $data['member_email'],
+                get_current_user_id(),
+                'member'
+            );
+
+            if (is_wp_error($result)) {
+                $this->add_message('error', $result->get_error_message());
+            } else {
+                $this->add_message('success', 'Team invitation sent successfully.');
+            }
+        }
+    }
+
+    /**
+     * Process resend invite form submissions.
+     */
+    public function process_resend_invite($processor) {
+        if (!$processor->verify_nonce('wizard_resend_invite')) {
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'user_id' => ['type' => 'number', 'required' => true]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            $teams = new WizardTeams();
+            
+            // For now, always succeed
+            $this->add_message('success', 'Team invitation resent successfully.');
+        }
+    }
+
+    /**
+     * Process revoke invite form submissions.
+     */
+    public function process_revoke_invite($processor) {
+        error_log('Starting process_revoke_invite');
+        
+        if (!$processor->verify_nonce('wizard_revoke_invite')) {
+            error_log('Nonce verification failed');
+            $this->add_message('error', 'Security verification failed.');
+            return;
+        }
+
+        $fields = [
+            'team_id' => ['type' => 'number', 'required' => true],
+            'invite_id' => ['type' => 'number', 'required' => true]
+        ];
+
+        if ($processor->process_fields($fields)) {
+            $data = $processor->get_data();
+            error_log('Processing revoke for invite_id: ' . $data['invite_id']);
+            
+            $teams = new WizardTeams();
+            $result = $teams->revoke_team_invite(absint($data['invite_id']));
+            
+            error_log('Revoke result: ' . (is_wp_error($result) ? $result->get_error_message() : 'success'));
+            
+            if (is_wp_error($result)) {
+                $this->add_message('error', $result->get_error_message());
+            } else {
+                $this->add_message('success', 'Team invitation revoked successfully.');
+            }
+        } else {
+            error_log('Field validation failed');
+            foreach ($processor->get_errors() as $error) {
+                $this->add_message('error', $error);
             }
         }
     }

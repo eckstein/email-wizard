@@ -15,11 +15,16 @@ $showMemberManagement = isset($_GET['manage_members']) && $_GET['manage_members'
 
         <div class="team-members-management">
             <h2>Manage Team Members</h2>
+            
             <?php 
             $teamMembers = $teamsManager->get_team_members($currentTeam);
-            if (!empty($teamMembers)): ?>
+            $pendingInvites = $teamsManager->get_team_invites($currentTeam);
+            
+            if (!empty($teamMembers) || !empty($pendingInvites)): ?>
                 <div class="team-members-list">
-                    <?php foreach ($teamMembers as $member): ?>
+                    <?php 
+                    // Show active members
+                    foreach ($teamMembers as $member): ?>
                         <div class="team-member-item">
                             <div class="member-info">
                                 <?php echo get_avatar($member->ID, 40); ?>
@@ -62,10 +67,70 @@ $showMemberManagement = isset($_GET['manage_members']) && $_GET['manage_members'
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
+
+                    <?php 
+                    // Show pending invites
+                    foreach ($pendingInvites as $invite): ?>
+                        <div class="team-member-item pending">
+                            <div class="member-info">
+                                <div class="member-avatar pending">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="member-details">
+                                    <span class="member-email"><?php echo esc_html($invite->email); ?></span>
+                                    <span class="member-status pending">Pending Invite</span>
+                                    <span class="member-invite-expires">Expires: <?php echo human_time_diff(strtotime($invite->expires_at)); ?></span>
+                                </div>
+                            </div>
+                            
+                            <div class="member-actions">
+                                <form method="post" class="resend-invite-form">
+                                    <?php wp_nonce_field('wizard_resend_invite', 'wizard_resend_invite_nonce'); ?>
+                                    <input type="hidden" name="wizard_form_action" value="resend_team_invite">
+                                    <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
+                                    <input type="hidden" name="invite_id" value="<?php echo esc_attr($invite->id); ?>">
+                                    
+                                    <button type="submit" class="wizard-button small">
+                                        <i class="fa-solid fa-paper-plane"></i>&nbsp;&nbsp;Resend
+                                    </button>
+                                </form>
+
+                                <form method="post" class="revoke-invite-form">
+                                    <?php wp_nonce_field('wizard_revoke_team_invite', 'wizard_revoke_team_invite_nonce'); ?>
+                                    <input type="hidden" name="wizard_form_action" value="revoke_team_invite">
+                                    <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
+                                    <input type="hidden" name="invite_id" value="<?php echo esc_attr($invite->id); ?>">
+                                    
+                                    <button type="submit" class="wizard-button small red">
+                                        <i class="fa-solid fa-xmark"></i>&nbsp;&nbsp;Revoke
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php else: ?>
                 <p>No team members found.</p>
             <?php endif; ?>
+
+            <div class="invite-member-section">
+                <h3>Invite New Member</h3>
+                <form method="post" class="invite-member-form">
+                    <?php wp_nonce_field('wizard_invite_team_member', 'wizard_invite_team_member_nonce'); ?>
+                    <input type="hidden" name="wizard_form_action" value="invite_team_member">
+                    <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
+                    
+                    <div class="invite-form-content">
+                        <input type="email" 
+                            name="member_email" 
+                            placeholder="Enter email address" 
+                            required>
+                        <button type="submit" class="wizard-button">
+                            <i class="fa-solid fa-paper-plane"></i>&nbsp;&nbsp;Send Invite
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
     <?php else: ?>

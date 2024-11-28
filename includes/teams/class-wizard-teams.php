@@ -140,7 +140,7 @@ class WizardTeams
     public function get_team_members($team_id)
     {
         return $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT u.ID, u.user_email, u.display_name, tm.role, tm.created_at as joined_at
+            "SELECT u.ID, u.user_email, u.display_name, tm.role, tm.status, tm.created_at as joined_at
             FROM {$this->wpdb->prefix}users u
             JOIN {$this->wpdb->prefix}team_members tm ON u.ID = tm.user_id
             WHERE tm.team_id = %d 
@@ -579,5 +579,141 @@ class WizardTeams
             return false;
         }
         return !empty($team->avatar);
+    }
+
+    /**
+     * Create or reactivate a team invitation
+     * 
+     * @param int $team_id Team ID
+     * @param string $email Invitee email
+     * @param int $invited_by User ID who sent the invite
+     * @param string $role Member role (default: 'member')
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function create_team_invite($team_id, $email, $invited_by, $role = 'member') {
+        if (!$this->team_exists($team_id)) {
+            return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        // Check if user is already an active member
+        $existing_user = get_user_by('email', $email);
+        if ($existing_user && $this->is_team_member($team_id, $existing_user->ID)) {
+            return new WP_Error('already_member', 'User is already a team member.');
+        }
+
+        // Check for existing invite
+        $existing_invite = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->wpdb->prefix}team_invites 
+            WHERE team_id = %d AND email = %s",
+            $team_id,
+            $email
+        ));
+
+        // Generate token and expiration
+        $token = wp_generate_password(32, false);
+        $expires_at = date('Y-m-d H:i:s', strtotime('+48 hours'));
+
+        if ($existing_invite) {
+            // Update existing invite
+            $result = $this->wpdb->update(
+                $this->wpdb->prefix . 'team_invites',
+                array(
+                    'token' => $token,
+                    'role' => $role,
+                    'status' => 'pending',
+                    'invited_by' => $invited_by,
+                    'expires_at' => $expires_at
+                ),
+                array('id' => $existing_invite->id),
+                array('%s', '%s', '%s', '%d', '%s'),
+                array('%d')
+            );
+
+            if ($result === false) {
+                return new WP_Error('invite_update_failed', 'Failed to update invitation.');
+            }
+
+            $invite_id = $existing_invite->id;
+        } else {
+            // Create new invite
+            $result = $this->wpdb->insert(
+                $this->wpdb->prefix . 'team_invites',
+                array(
+                    'team_id' => $team_id,
+                    'email' => $email,
+                    'token' => $token,
+                    'role' => $role,
+                    'invited_by' => $invited_by,
+                    'expires_at' => $expires_at
+                ),
+                array('%d', '%s', '%s', '%s', '%d', '%s')
+            );
+
+            if ($result === false) {
+                return new WP_Error('invite_failed', 'Failed to create invitation.');
+            }
+
+            $invite_id = $this->wpdb->insert_id;
+        }
+
+        // TODO: Send invitation email
+        do_action('wizard_team_invite_created', $invite_id, $team_id, $email, $token);
+
+        return true;
+    }
+
+    /**
+     * Get pending invites for a team
+     * 
+     * @param int $team_id Team ID
+     * @return array Array of invite objects
+     */
+    public function get_team_invites($team_id) {
+        return $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT * FROM {$this->wpdb->prefix}team_invites 
+            WHERE team_id = %d 
+            AND status = 'pending'
+            AND expires_at > NOW()",
+            $team_id
+        ));
+    }
+
+    /**
+     * Revoke a team invitation
+     * 
+     * @param int $invite_id Invite ID
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function revoke_team_invite($invite_id) {
+        error_log('Attempting to revoke invite: ' . $invite_id);
+        
+        // First verify the invite exists
+        $invite = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->wpdb->prefix}team_invites WHERE id = %d",
+            $invite_id
+        ));
+
+        if (!$invite) {
+            error_log('Invite not found: ' . $invite_id);
+            return new WP_Error('invalid_invite', 'Invite not found.');
+        }
+
+        error_log('Found invite, current status: ' . $invite->status);
+
+        $result = $this->wpdb->update(
+            $this->wpdb->prefix . 'team_invites',
+            array('status' => 'revoked'),
+            array('id' => $invite_id),
+            array('%s'),
+            array('%d')
+        );
+
+        error_log('Update result: ' . ($result === false ? 'failed' : 'success'));
+        if ($result === false) {
+            error_log('MySQL error: ' . $this->wpdb->last_error);
+            return new WP_Error('revoke_failed', 'Failed to revoke invitation: ' . $this->wpdb->last_error);
+        }
+
+        return true;
     }
 }
