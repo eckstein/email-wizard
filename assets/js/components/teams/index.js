@@ -1,4 +1,4 @@
-import { addEventListenerIfExists } from "../../utils/functions.js";
+import { addEventListenerIfExists } from "../../utils/dom-utils";
 import { handleNewTeam, handleTeamSwitch } from "./handlers/team-actions.js";
 
 export function initTeams() {

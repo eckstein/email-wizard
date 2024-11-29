@@ -5,7 +5,7 @@ import "tinymce/models/dom";
 tinymce.baseURL = "/tinymce";
 
 import { handleEditFolderTitle } from "../components/file-explorer/handlers/folders.js";
-import { addEventListenerIfExists } from "./functions.js";
+import { addEventListenerIfExists } from "./dom-utils";
 
 function suppressPassiveWarnings() {
 	const originalAddEventListener = EventTarget.prototype.addEventListener;

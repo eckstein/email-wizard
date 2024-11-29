@@ -12,7 +12,8 @@ import {
 	handleRestoreSelected,
 	handleDeleteSelectedForever
 } from "../handlers/bulk-actions.js";
-import { addEventListenerIfExists, showErrorToast } from "../../../utils/functions.js";
+import { addEventListenerIfExists } from "../../../utils/dom-utils";
+import { showErrorToast } from "../../../utils/notification-utils";
 import { handleNewTeam } from "../../teams/handlers/team-actions.js";
 import { initSearch } from "../utils/search.js";
 import { initPaginationControls } from '../utils/pagination.js';

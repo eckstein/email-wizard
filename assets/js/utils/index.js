@@ -1,32 +1,14 @@
-// UI Related Utilities
-export { toggleWizardDropdown, hideWizardDropdown } from './ui/dropdown';
-export { switchWizardTab } from './ui/tabs';
-export { initSlideover } from './ui/slideover';
+/**
+ * Main utilities export file
+ */
 
-// Form & Input Handling
-export { ddRepeaterRow, removeRepeaterRow } from './forms';
+export * from './dom-utils';
+export * from './http-utils';
+export * from './notification-utils';
+export * from './forms';
 
-// DOM Manipulation
-export { 
-    addEventListenerIfExists,
-    highlightElement,
-    highlightAndRemove 
-} from './functions';
-
-// Notification & Feedback
-export { 
-    wizToast,
-    showSuccessToast,
-    showErrorToast,
-    checkUrlParamsForToasts 
-} from './ui/swal2';
-
-// Editor Configuration
-export { initEditableFolderTitles } from './tinymce';
-
-// HTTP & Response Handling
-export { 
-    handleFetchError,
-    handleHTTPResponse,
-    removeUrlParameter 
-} from './functions';
+// Re-export UI utilities
+export * from './ui/swal2';
+export * from './ui/tabs';
+export * from './ui/dropdown';
+export * from './ui/slideover';

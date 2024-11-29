@@ -1,11 +1,11 @@
-import { showErrorToast } from "../../../utils/functions.js";
+import { showErrorToast } from "../../../utils/notification-utils";
+import { addEventListenerIfExists } from "../../../utils/dom-utils";
 import { showRestoreConfirm, showDeleteConfirm, removeItemFromUi } from "../core/common.js";
 import { 
     restoreTemplate,
     deleteTemplateForever,
     duplicateTemplate
 } from "../services/template.service.js";
-import { addEventListenerIfExists } from "../../../utils/functions.js";
 import { showCreateTemplateDialog } from "../ui/template-dialogs.js";
 
 export {

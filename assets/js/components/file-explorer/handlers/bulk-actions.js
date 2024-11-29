@@ -1,4 +1,5 @@
-import { showErrorToast, addEventListenerIfExists } from "../../../utils/functions.js";
+import { showErrorToast } from "../../../utils/notification-utils";
+import { addEventListenerIfExists } from "../../../utils/dom-utils";
 import { moveItems, deleteItems, handleMoveItems } from "../core/common.js";
 import { handleTemplateRestore, handleTemplateDeleteForever } from "./templates.js";
 import { getSelectedItems, updateBulkActionsState } from "../ui/selection.js";

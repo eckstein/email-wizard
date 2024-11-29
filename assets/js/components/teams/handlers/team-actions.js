@@ -1,4 +1,5 @@
-import { showSuccessToast, handleFetchError } from "../../../utils/functions.js";
+import { showSuccessToast } from "../../../utils/notification-utils";
+import { handleFetchError } from "../../../utils/http-utils";
 import { createTeam, switchTeam } from "../services/team.service.js";
 import { showCreateTeamDialog } from "../ui/team-dialogs.js";
 

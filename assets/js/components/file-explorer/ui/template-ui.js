@@ -1,4 +1,5 @@
-import { handleHTTPResponse, highlightElement } from "../../../utils/functions.js";
+import { handleHTTPResponse } from "../../../utils/http-utils";
+import { highlightElement } from "../../../utils/dom-utils";
 import { initFileExplorer } from "../core/index.js";
 import { templateTableAPI } from "../services/template-table-api.js";
 

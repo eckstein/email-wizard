@@ -1,4 +1,5 @@
-import { handleFetchError, showSuccessToast, showErrorToast, handleHTTPResponse } from "../../../utils/functions.js";
+import { handleFetchError, handleHTTPResponse } from "../../../utils/http-utils";
+import { showSuccessToast, showErrorToast } from "../../../utils/notification-utils";
 
 export {
     createFolder,

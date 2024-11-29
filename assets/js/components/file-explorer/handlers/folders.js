@@ -1,4 +1,6 @@
-import { showErrorToast, handleFetchError, highlightElement } from "../../../utils/functions.js";
+import { showErrorToast } from "../../../utils/notification-utils";
+import { handleFetchError } from "../../../utils/http-utils";
+import { highlightElement } from "../../../utils/dom-utils";
 import { createFolder, getFolderRowHtml, renameFolder } from "../services/folder.service.js";
 import { showCreateFolderDialog, openFolderTitleEditor } from "../ui/folder-dialogs.js";
 import { addFolderToTable } from "../ui/folder-ui.js";

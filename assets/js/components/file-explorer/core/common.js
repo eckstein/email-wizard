@@ -1,10 +1,7 @@
 import Swal from "sweetalert2";
-import {
-	highlightAndRemove,
-	showSuccessToast,
-	showErrorToast,
-	handleFetchError,
-} from "../../../utils/functions.js";
+import { highlightAndRemove } from "../../../utils/dom-utils";
+import { showSuccessToast, showErrorToast } from "../../../utils/notification-utils";
+import { handleFetchError } from "../../../utils/http-utils";
 
 import { templateTableAPI } from "../services/template-table-api.js";
 import { selectFolder } from "../ui/folder-dialogs.js";

@@ -1,4 +1,5 @@
-import { handleHTTPResponse, showSuccessToast } from "../../../utils/functions.js";
+import { handleHTTPResponse } from "../../../utils/http-utils";
+import { showSuccessToast } from "../../../utils/notification-utils";
 
 export {
     createTeam,

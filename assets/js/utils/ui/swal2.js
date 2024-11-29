@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 
-import { showSuccessToast, removeUrlParameter } from "../functions";
+import { showSuccessToast } from "../notification-utils";
+import { removeUrlParameter } from "../http-utils";
 
 export { wizToast, checkUrlParamsForToasts };
 

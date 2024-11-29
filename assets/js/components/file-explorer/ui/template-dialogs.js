@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { showErrorToast } from "../../../utils/functions.js";
+import { showErrorToast } from "../../../utils/notification-utils";
 import { createTemplate } from "../services/template.service.js";
 import { getTemplateRowHtml, addTemplateToTable } from "./template-ui.js";
 import { templateTableAPI } from "../services/template-table-api.js";

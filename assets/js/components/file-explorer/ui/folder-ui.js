@@ -1,4 +1,5 @@
-import { highlightElement, showSuccessToast } from "../../../utils/functions.js";
+import { highlightElement } from "../../../utils/dom-utils";
+import { showSuccessToast } from "../../../utils/notification-utils";
 import { initFileExplorer } from "../core/index.js";
 import { templateTableAPI } from "../services/template-table-api.js";
 

@@ -1,4 +1,5 @@
-import { handleFetchError, showSuccessToast } from "../../../utils/functions.js";
+import { handleFetchError } from "../../../utils/http-utils";
+import { showSuccessToast } from "../../../utils/notification-utils";
 
 export {
     createTemplate,
