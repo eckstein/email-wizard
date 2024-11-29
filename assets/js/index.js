@@ -18,7 +18,10 @@ import {
 	removeUrlParameter,
 } from "./utils";
 
+import { initTeams } from "./components/teams";
+
 document.addEventListener("DOMContentLoaded", () => {
 	checkUrlParamsForToasts();
 	initEditableFolderTitles();
+	initTeams();
 });

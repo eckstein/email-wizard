@@ -26,13 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
 	const urlParams = new URLSearchParams(window.location.search);
 	const activeTab = urlParams.get('tab');
 
+	// Find the tab to activate
+	let tabToActivate;
 	if (activeTab) {
-		const tab = document.querySelector(`.wizard-tabs-list li[data-tab='${activeTab}']`);
-		if (tab) {
-			switch_wizard_tab.call(tab);
-		}
+		tabToActivate = document.querySelector(`.wizard-tabs-list li[data-tab='${activeTab}']`);
+	}
+	
+	// If no tab in URL or tab not found, use first tab
+	if (!tabToActivate) {
+		tabToActivate = document.querySelector('.wizard-tabs-list li');
 	}
 
+	// Activate the tab if found
+	if (tabToActivate) {
+		switch_wizard_tab.call(tabToActivate);
+	}
+
+	// Add click handlers
 	document.querySelectorAll(".wizard-tabs-list li").forEach(tab => {
 		tab.addEventListener('click', switch_wizard_tab);
 	});

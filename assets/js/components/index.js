@@ -28,8 +28,5 @@ export {
 // Team Management
 export {
 	initTeamHandler,
-	handleNewTeam,
-	showCreateTeamDialog,
-	createTeamRequest,
-	switchTeam
-} from './teams/teams-actions';
+	handleNewTeam
+} from './teams/handlers/team-actions';

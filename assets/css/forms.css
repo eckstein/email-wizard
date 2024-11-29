@@ -27,6 +27,7 @@ h3.wizard-form-section-title {
 .wizard-form-fieldgroup-value {
 	flex: 3;
 	display: flex;
+	gap: 20px;
 }
 .wizard-form-fieldgroup-value textarea {
 	height: 10em;

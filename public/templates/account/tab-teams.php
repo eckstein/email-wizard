@@ -115,19 +115,21 @@ $showMemberManagement = isset($_GET['manage_members']) && $_GET['manage_members'
 
             <div class="invite-member-section">
                 <h3>Invite New Member</h3>
-                <form method="post" class="invite-member-form">
+                <form method="post" class="invite-member-form wizard-form">
                     <?php wp_nonce_field('wizard_invite_team_member', 'wizard_invite_team_member_nonce'); ?>
                     <input type="hidden" name="wizard_form_action" value="invite_team_member">
                     <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                     
-                    <div class="invite-form-content">
-                        <input type="email" 
-                            name="member_email" 
-                            placeholder="Enter email address" 
-                            required>
-                        <button type="submit" class="wizard-button">
-                            <i class="fa-solid fa-paper-plane"></i>&nbsp;&nbsp;Send Invite
-                        </button>
+                    <div class="wizard-form-fieldgroup">
+                        <div class="wizard-form-fieldgroup-value">
+                            <input type="email" 
+                                name="member_email" 
+                                placeholder="Enter email address" 
+                                required>
+                            <button type="submit" class="wizard-button button-primary">
+                                <i class="fa-solid fa-paper-plane"></i>&nbsp;&nbsp;Send Invite
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

@@ -13,7 +13,7 @@ import {
 	handleDeleteSelectedForever
 } from "../handlers/bulk-actions.js";
 import { addEventListenerIfExists, showErrorToast } from "../../../utils/functions.js";
-import { handleNewTeam } from "../../teams/teams-actions.js";
+import { handleNewTeam } from "../../teams/handlers/team-actions.js";
 import { initSearch } from "../utils/search.js";
 import { initPaginationControls } from '../utils/pagination.js';
 import { moveItems, deleteItems, handleMoveItems } from "./common.js";

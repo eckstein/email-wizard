@@ -1,7 +1,6 @@
 import Swal from "sweetalert2";
 import NiceSelect from "nice-select2";
 import { getUserFolders } from "../services/folder.service.js";
-import { highlightElement } from "../../../utils/functions.js";
 
 export {
     showCreateFolderDialog,
@@ -47,49 +46,41 @@ function openFolderTitleEditor(folderId, existingName) {
 }
 
 async function selectFolder(title = "Select folder") {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const currentFolderId = wizard.current_folder_id;
-            
-            const foldersResponse = await getUserFolders([currentFolderId]);
-            let availableFolders = foldersResponse.data || [];
+    const currentFolderId = wizard.current_folder_id;
+    
+    const foldersResponse = await getUserFolders([currentFolderId]);
+    let availableFolders = foldersResponse.data || [];
 
-            if (currentFolderId && currentFolderId !== "root") {
-                availableFolders.unshift({
-                    id: "root",
-                    name: "Root",
-                });
-            }
+    if (currentFolderId && currentFolderId !== "root") {
+        availableFolders.unshift({
+            id: "root",
+            name: "Root",
+        });
+    }
 
-            if (availableFolders.length > 0) {
-                let folderOptions = availableFolders.map((folder) => 
-                    `<option value="${folder.id}">${folder.name}</option>`
-                );
+    if (availableFolders.length === 0) {
+        throw new Error("No available folders to select from");
+    }
 
-                Swal.fire({
-                    title: title,
-                    html: `<select id="folder-select" class="swal2-input">${folderOptions.join("")}</select>`,
-                    confirmButtonText: "Select",
-                    showCancelButton: true,
-                    customClass: {
-                        container: "swal-with-folder-select",
-                    },
-                    preConfirm: () => {
-                        return document.getElementById("folder-select").value;
-                    },
-                    didOpen: () => {
-                        new NiceSelect(document.getElementById("folder-select"), {
-                            searchable: true,
-                        });
-                    },
-                })
-                .then(resolve)
-                .catch(reject);
-            } else {
-                reject(new Error("No available folders to select from"));
-            }
-        } catch (error) {
-            reject(error);
-        }
+    const folderOptions = availableFolders.map((folder) => 
+        `<option value="${folder.id}">${folder.name}</option>`
+    );
+
+    return Swal.fire({
+        title: title,
+        html: `<select id="folder-select" class="swal2-input">${folderOptions.join("")}</select>`,
+        confirmButtonText: "Select",
+        showCancelButton: true,
+        customClass: {
+            container: "swal-with-folder-select",
+        },
+        preConfirm: () => {
+            return document.getElementById("folder-select").value;
+        },
+        didOpen: () => {
+            new NiceSelect(document.getElementById("folder-select"), {
+                searchable: true,
+            });
+        },
     });
 } 
