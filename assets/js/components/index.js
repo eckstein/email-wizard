@@ -1,35 +1,35 @@
 // Template Management
 export {
-	create_single_template,
-	duplicate_single_template,
+	createSingleTemplate,
+	duplicateSingleTemplate,
 	saveTemplateFormData,
-	restore_templates,
-	delete_templates_forever,
+	restoreTemplates,
+	deleteTemplatesForever,
 	templateTableAPI
 } from './file-explorer/template-table-api';
 
 // Folder Operations
 export {
-	select_folder,
-	open_folder_title_editor,
-	create_new_wizard_folder,
-	rename_single_folder,
-	init_file_explorer
+	selectFolder,
+	openFolderTitleEditor,
+	createNewWizardFolder,
+	renameSingleFolder,
+	initFileExplorer
 } from './file-explorer/folders';
 
 // Item Operations
 export {
-	move_items,
-	delete_items,
-	show_delete_confirm,
-	show_restore_confirm
+	moveItems,
+	deleteItems,
+	showDeleteConfirm,
+	showRestoreConfirm
 } from './file-explorer/common';
 
 // Team Management
 export {
-	init_team_handler,
+	initTeamHandler,
 	handleNewTeam,
-	show_create_team_dialog,
+	showCreateTeamDialog,
 	createTeamRequest,
-	switch_team
+	switchTeam
 } from './teams/teams-actions';

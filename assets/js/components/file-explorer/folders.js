@@ -1,34 +1,32 @@
 import Swal from "sweetalert2";
 import NiceSelect from "nice-select2";
-import { init_file_explorer } from "./fileExplorer-init.js";
-import { highlight_element, handleFetchError, handleHTTPResponse, show_error_toast, show_success_toast, highlight_and_remove } from "../../utils/functions.js";
+import { initFileExplorer } from "./file-explorer-init.js";
+import { highlightElement, handleFetchError, handleHTTPResponse, showErrorToast, showSuccessToast, highlightAndRemove } from "../../utils/functions.js";
 
-import { move_single_item, delete_item_from_server, remove_item_from_ui, show_delete_item_confirm } from "./common.js";
+import { moveSingleItem, deleteItemFromServer, removeItemFromUi, showDeleteItemConfirm } from "./common.js";
 
 import { templateTableAPI } from "./template-table-api.js";
 
-export { open_folder_title_editor, create_new_wizard_folder, rename_single_folder, select_folder, remove_item_from_ui };
+export { openFolderTitleEditor, createNewWizardFolder, renameSingleFolder, selectFolder, removeItemFromUi };
 
-function create_new_wizard_folder(parentFolderId = "root") {
-	show_create_folder_dialog()
+function createNewWizardFolder(parentFolderId = "root") {
+	showCreateFolderDialog()
 		.then((result) => {
 			if (!result.isConfirmed) {
-				// User cancelled - throw error to break the chain
 				throw new Error("User cancelled");
 			}
 			const folderName = result.value.folderName;
-			return create_folder(parentFolderId, folderName);
+			return createFolder(parentFolderId, folderName);
 		})
 		.then((newFolderId) => {
-			// Only proceed if we have a newFolderId
 			if (newFolderId) {
-				return get_folder_row_html(parentFolderId, newFolderId);
+				return getFolderRowHtml(parentFolderId, newFolderId);
 			}
 			throw new Error("No folder ID returned");
 		})
 		.then((data) => {
 			if (data.success && data.data) {
-				add_folder_to_table(data.data.html);
+				addFolderToTable(data.data.html);
 			} else {
 				throw new Error(data.data || "Failed to update folder list");
 			}
@@ -40,7 +38,7 @@ function create_new_wizard_folder(parentFolderId = "root") {
 		});
 }
 
-async function get_folder_row_html(parentFolderId, newFolderId) {
+async function getFolderRowHtml(parentFolderId, newFolderId) {
 	const urlParams = new URLSearchParams(window.location.search);
 	const args = {
 		orderby: urlParams.get("orderby"),
@@ -65,27 +63,26 @@ async function get_folder_row_html(parentFolderId, newFolderId) {
 	return handleHTTPResponse(response);
 }
 
-function add_folder_to_table(htmlData) {
+function addFolderToTable(htmlData) {
 	const folderTable = document.querySelector(".wizard-folders-table tbody.subfolders");
 	
-	// Remove any existing "no items" message
 	templateTableAPI.removeEmptyState();
 	
 	folderTable.insertAdjacentHTML("beforeend", htmlData.trim());
 	const newRow = folderTable.lastElementChild;
 
 	if (newRow && newRow.tagName === "TR") {
-		init_file_explorer();
-		show_success_toast("Folder created successfully");
+		initFileExplorer();
+		showSuccessToast("Folder created successfully");
 		setTimeout(() => {
-			highlight_element("#" + newRow.id, 2000);
+			highlightElement("#" + newRow.id, 2000);
 		}, 300);
 	} else {
 		throw new Error("Unexpected HTML structure returned");
 	}
 }
 
-function show_create_folder_dialog() {
+function showCreateFolderDialog() {
 	return Swal.fire({
 		title: "Create New Folder",
 		html: '<input id="swal-input1" class="swal2-input" placeholder="Enter folder name">',
@@ -105,7 +102,7 @@ function show_create_folder_dialog() {
 	});
 }
 
-async function create_folder(parentFolderId, folderName) {
+async function createFolder(parentFolderId, folderName) {
 	const response = await fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {
@@ -126,7 +123,7 @@ async function create_folder(parentFolderId, folderName) {
 	}
 }
 
-async function rename_single_folder(folderId, newName) {
+async function renameSingleFolder(folderId, newName) {
 	return fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {
@@ -145,7 +142,8 @@ async function rename_single_folder(folderId, newName) {
 		return response.json();
 	});
 }
-function open_folder_title_editor(folderId, existingName) {
+
+function openFolderTitleEditor(folderId, existingName) {
 	Swal.fire({
 		title: "Rename folder",
 		html: `<input id="folder-title" class="swal2-input" placeholder="Enter new folder title" value="${existingName}">`,
@@ -161,26 +159,24 @@ function open_folder_title_editor(folderId, existingName) {
 		},
 	}).then((result) => {
 		if (result.isConfirmed) {
-			rename_single_folder(folderId, result.value.folderTitle);
+			renameSingleFolder(folderId, result.value.folderTitle);
 			const folderTitleElement = document.querySelector(`tr[data-id="${folderId}"] .wizard-table-folder-name-link`);
 			if (folderTitleElement) {
 				folderTitleElement.textContent = result.value.folderTitle;
-				// Highlight <td> of title
-				highlight_element(`tr[data-id="${folderId}"] .wizard-table-template-name`, 2000);
+				highlightElement(`tr[data-id="${folderId}"] .wizard-table-template-name`, 2000);
 			}
 		}
 	});
 }
-async function select_folder(title = "Select folder") {
+
+async function selectFolder(title = "Select folder") {
 	return new Promise(async (resolve, reject) => {
 		try {
 			const currentFolderId = wizard.current_folder_id;
 			
-			// Get folders excluding current folder
-			const foldersResponse = await get_user_folders([currentFolderId]);
+			const foldersResponse = await getUserFolders([currentFolderId]);
 			let availableFolders = foldersResponse.data || [];
 
-			// Add root folder if not currently in root
 			if (currentFolderId && currentFolderId !== "root") {
 				availableFolders.unshift({
 					id: "root",
@@ -221,7 +217,7 @@ async function select_folder(title = "Select folder") {
 	});
 }
 
-async function get_user_folders(exclude = []) {
+async function getUserFolders(exclude = []) {
 	const response = await fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {

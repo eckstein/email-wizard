@@ -1,28 +1,29 @@
-import { show_success_toast, handleFetchError, handleHTTPResponse } from "../../utils/functions.js";
+import { showSuccessToast, handleFetchError, handleHTTPResponse } from "../../utils/functions.js";
 import Swal from "sweetalert2";
 
 export {
-	init_team_handler,
+	initTeamHandler,
 	handleNewTeam,
-	show_create_team_dialog,
+	showCreateTeamDialog,
 	createTeamRequest,
-	switch_team,
+	switchTeam,
 };
 
-init_team_handler();
+initTeamHandler();
 
-function init_team_handler() {
+function initTeamHandler() {
 	document.querySelectorAll(".switch-team-trigger").forEach((trigger) => {
 		trigger.addEventListener("click", (event) => {
 			const teamId = event.target.dataset.teamId;
 			if (teamId) {
-				switch_team(teamId);
+				switchTeam(teamId);
 			}
 		});
 	});
 }
+
 function handleNewTeam() {
-	show_create_team_dialog()
+	showCreateTeamDialog()
 		.then((result) => {
 			if (!result.isConfirmed) {
 				throw new Error("User cancelled");
@@ -33,8 +34,7 @@ function handleNewTeam() {
 			if (!newTeamId) {
 				throw new Error("No team ID returned");
 			}
-			show_success_toast("Team created successfully");
-			// Add logic here to refresh the teams list
+			showSuccessToast("Team created successfully");
 			window.location.reload();
 		})
 		.catch((error) => {
@@ -43,7 +43,8 @@ function handleNewTeam() {
 			}
 		});
 }
-function show_create_team_dialog() {
+
+function showCreateTeamDialog() {
 	return Swal.fire({
 		title: "Create New Team",
 		html: '<input id="swal-input1" class="swal2-input" placeholder="Enter team name">',
@@ -85,7 +86,7 @@ function createTeamRequest(userId, teamName) {
 		});
 }
 
-function switch_team(teamId) {
+function switchTeam(teamId) {
 	fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {

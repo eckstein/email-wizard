@@ -1,12 +1,12 @@
 import Swal from "sweetalert2";
 
-import { show_success_toast, remove_url_parameter } from "../functions";
+import { showSuccessToast, removeUrlParameter } from "../functions";
 
-export { wiz_toast, checkUrlParamsForToasts };
+export { wizToast, checkUrlParamsForToasts };
 
-function wiz_toast(args) {
+function wizToast(args) {
 	if (!args.text && !args.html) {
-        throw new Error("Message text is required for wiz_toast");
+        throw new Error("Message text is required for wizToast");
     }
 
 	args.toast = true;
@@ -27,25 +27,21 @@ function wiz_toast(args) {
     return Swal.fire(args);
 }
 
-// Detect URLs that have specific query params to auto-show toasts on load
-export function checkUrlParamsForToasts() {
+function checkUrlParamsForToasts() {
 	const urlParams = new URLSearchParams(window.location.search);
-	const toast_triggers = ["team_switched"];
+	const toastTriggers = ["team_switched"];
 
-	toast_triggers.forEach((trigger) => {
+	toastTriggers.forEach((trigger) => {
 		if (urlParams.has(trigger)) {
 			switch (trigger) {
 				case "team_switched":
-					show_success_toast(`Switched to team "${wizard.active_team_name}" successfully`);
+					showSuccessToast(`Switched to team "${wizard.active_team_name}" successfully`);
 					break;
-				// Add more cases as needed for future triggers
 			}
-			// Remove the URL parameter from the URL
-			const newUrl = remove_url_parameter(window.location.href, trigger);
+			const newUrl = removeUrlParameter(window.location.href, trigger);
 			window.history.replaceState({}, "", newUrl);
 		}
 	});
 }
 
-// Call this when page loads
 document.addEventListener("DOMContentLoaded", checkUrlParamsForToasts);

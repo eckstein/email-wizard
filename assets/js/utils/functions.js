@@ -1,15 +1,15 @@
 import Swal from "sweetalert2";
-import { wiz_toast } from "./ui/swal2";
+import { wizToast } from "./ui/swal2";
 
 export {
 	addEventListenerIfExists,
-	highlight_element,
+	highlightElement,
 	handleHTTPResponse,
 	handleFetchError,
-	show_success_toast,
-	show_error_toast,
-	highlight_and_remove,
-	remove_url_parameter,
+	showSuccessToast,
+	showErrorToast,
+	highlightAndRemove,
+	removeUrlParameter,
 };
 
 function addEventListenerIfExists(selector, eventType, callback, passive = false) {
@@ -22,7 +22,7 @@ function addEventListenerIfExists(selector, eventType, callback, passive = false
 	}
 }
 
-function highlight_element(selector, duration = 1000) {
+function highlightElement(selector, duration = 1000) {
 	const element = document.querySelector(selector);
 
 	if (element) {
@@ -39,7 +39,7 @@ function highlight_element(selector, duration = 1000) {
 	}
 }
 
-function highlight_and_remove(element) {
+function highlightAndRemove(element) {
 	element.style.transition = "background-color 0.5s, opacity 0.5s";
 	element.style.backgroundColor = "#ffebee";
 	
@@ -63,7 +63,7 @@ function handleFetchError(error) {
 	Swal.fire("Error!", error.message, "error");
 }
 
-function show_success_toast(text = "Success!", timer = 10000, asHtml = false) {
+function showSuccessToast(text = "Success!", timer = 10000, asHtml = false) {
 	const args = {
 		timer: timer,
 		icon: "success",
@@ -73,10 +73,10 @@ function show_success_toast(text = "Success!", timer = 10000, asHtml = false) {
 	} else {
 		args.text = text;
 	}
-	wiz_toast(args);
+	wizToast(args);
 }
 
-function show_error_toast(text = "Error!", timer = 10000, asHtml = false) {
+function showErrorToast(text = "Error!", timer = 10000, asHtml = false) {
 	const args = {
 		timer: timer,
 		icon: "error",
@@ -86,10 +86,10 @@ function show_error_toast(text = "Error!", timer = 10000, asHtml = false) {
 	} else {
 		args.text = text;
 	}
-	wiz_toast(args);
+	wizToast(args);
 }
 
-function remove_url_parameter(url, parameter) {
+function removeUrlParameter(url, parameter) {
 	//prefer to use l.search if you have a location/link object
 	var urlparts = url.split("?");
 	if (urlparts.length >= 2) {

@@ -1,34 +1,34 @@
 import Swal from "sweetalert2";
 import { addEventListenerIfExists } from "../../utils/functions.js";
 import {
-	highlight_element,
+	highlightElement,
 	handleHTTPResponse,
-	show_error_toast,
-	show_success_toast,
+	showErrorToast,
+	showSuccessToast,
 } from "../../utils/functions.js";
 
 import {
-	remove_item_from_ui
+	removeItemFromUi
 } from "./common.js";
 
 import { templateTableAPI } from "./template-table-api.js";
 
-import { init_file_explorer } from "./fileExplorer-init.js";
+import { initFileExplorer } from "./file-explorer-init.js";
 
 export {
-	create_single_template,
-	duplicate_single_template,
-	get_template_row_html,
-	add_template_to_table,
-	restore_templates,
-	delete_templates_forever
+	createSingleTemplate,
+	duplicateSingleTemplate,
+	getTemplateRowHtml,
+	addTemplateToTable,
+	restoreTemplates,
+	deleteTemplatesForever
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-	init_template_actions();
+	initTemplateActions();
 });
 
-function init_template_actions() {
+function initTemplateActions() {
 	addEventListenerIfExists(".new-template", "click", (event) => {
 		event.preventDefault();
 		Swal.fire({
@@ -48,7 +48,7 @@ function init_template_actions() {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				const templateName = result.value;
-				create_single_template(templateName, wizard.current_folder_id)
+				createSingleTemplate(templateName, wizard.current_folder_id)
 					.then((template_id) => {
 						const permalink = `${wizard.site_url}?p=${template_id}`;
 						Swal.fire({
@@ -68,33 +68,31 @@ function init_template_actions() {
 							},
 						}).then((result) => {
 							if (result.dismiss === Swal.DismissReason.cancel) {
-								// Remove empty state if it exists
 								templateTableAPI.removeEmptyState();
 								
-								// Get and add the new template row
-								get_template_row_html(template_id)
+								getTemplateRowHtml(template_id)
 									.then(data => {
 										if (data.success && data.data) {
-											add_template_to_table(data.data.html);
+											addTemplateToTable(data.data.html);
 										}
 									})
 									.catch(error => {
 										console.error('Error getting template row:', error);
-										show_error_toast('Failed to update template list');
+										showErrorToast('Failed to update template list');
 									});
 							}
 						});
 					})
 					.catch((error) => {
 						console.error("Error creating template:", error);
-						Swal.fire("Error", "Failed to create template", "error");
+							Swal.fire("Error", "Failed to create template", "error");
 					});
 			}
 		});
 	});
 }
 
-async function create_single_template(templateName, folderId) {
+async function createSingleTemplate(templateName, folderId) {
 	if (!templateName || !folderId) {
 		console.error("Template name or folder ID is missing.");
 		return;
@@ -113,13 +111,13 @@ async function create_single_template(templateName, folderId) {
 	});
 	const data = await response.json();
 	if (data.success && data.data) {
-		return data.data; // returns the new template ID
+		return data.data;
 	} else {
 		throw new Error("Failed to create template");
 	}
 }
 
-function duplicate_single_template(templateId) {
+function duplicateSingleTemplate(templateId) {
 	fetch(wizard.ajaxurl, {
 		method: "POST",
 		headers: {
@@ -156,7 +154,7 @@ function duplicate_single_template(templateId) {
 		});
 }
 
-function restore_templates(templates) {
+function restoreTemplates(templates) {
 	if (!templates || !templates.length) {
 		return;
 	}
@@ -179,10 +177,9 @@ function restore_templates(templates) {
 		})
 		.then((data) => {
 			if (data.success) {
-				show_success_toast("Templates restored successfully");
-				// remove the deleted restored templates from the UI
+				showSuccessToast("Templates restored successfully");
 				templates.forEach((templateId) => {
-					remove_item_from_ui(templateId, "template");
+					removeItemFromUi(templateId, "template");
 				});
 			} else {
 				throw new Error(data.data);
@@ -190,7 +187,7 @@ function restore_templates(templates) {
 		});
 }
 
-function delete_templates_forever(templates) {
+function deleteTemplatesForever(templates) {
 	if (!templates || !templates.length) {
 		return;
 	}
@@ -213,21 +210,18 @@ function delete_templates_forever(templates) {
 		})
 		.then((data) => {
 			if (data.success) {
-				show_success_toast("Templates permanantly deleted successfully");
-				// remove the deleted templates from the UI
+				showSuccessToast("Templates permanently deleted successfully");
 				templates.forEach((templateId) => {
-					remove_item_from_ui(templateId, "template");
+					removeItemFromUi(templateId, "template");
 				});
 			} else {
 				throw new Error(data.data);
-				show_error_toast("Error deleting templates");
+				showErrorToast("Error deleting templates");
 			}
 		});
 }
-		
-	
 
-async function get_template_row_html(templateId) {
+async function getTemplateRowHtml(templateId) {
 	const urlParams = new URLSearchParams(window.location.search);
 	const args = {};
 
@@ -249,7 +243,7 @@ async function get_template_row_html(templateId) {
 	return handleHTTPResponse(response);
 }
 
-function add_template_to_table(html) {
+function addTemplateToTable(html) {
 	let templatesTable = document.querySelector(".wizard-folders-table tbody.templates");
 	
 	if (!templatesTable) {
@@ -259,17 +253,16 @@ function add_template_to_table(html) {
 		table.appendChild(templatesTable);
 	}
 
-	// Remove empty state if it exists
 	templateTableAPI.removeEmptyState();
 	
 	templatesTable.insertAdjacentHTML("beforeend", html.trim());
 	const newRow = templatesTable.lastElementChild;
 	
 	if (newRow && newRow.tagName === "TR") {
-		init_file_explorer();
-		show_success_toast("Template created successfully");
+		initFileExplorer();
+		showSuccessToast("Template created successfully");
 		setTimeout(() => {
-			highlight_element("#" + newRow.id, 2000);
+			highlightElement("#" + newRow.id, 2000);
 		}, 300);
 	} else {
 		throw new Error("Unexpected HTML structure returned");

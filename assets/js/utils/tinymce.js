@@ -2,13 +2,11 @@ import tinymce from "tinymce/tinymce";
 import "tinymce/icons/default";
 import "tinymce/models/dom";
 
-// Set the base URL for TinyMCE resources
 tinymce.baseURL = "/tinymce";
 
-import { rename_single_folder } from "../components/file-explorer/folders";
+import { renameSingleFolder } from "../components/file-explorer/folders";
 import { addEventListenerIfExists } from "./functions";
 
-// Function to suppress passive event listener warnings
 function suppressPassiveWarnings() {
 	const originalAddEventListener = EventTarget.prototype.addEventListener;
 	EventTarget.prototype.addEventListener = function (type, listener, options) {
@@ -20,7 +18,6 @@ function suppressPassiveWarnings() {
 	};
 }
 
-// Customizable TinyMCE initialization function
 function initTinyMCE(options = {}) {
 	const defaultOptions = {
 		inline: true,
@@ -44,8 +41,7 @@ function initTinyMCE(options = {}) {
 	return tinymce.init(mergedOptions);
 }
 
-// Specific initialization for editable folder titles
-export function init_editable_folder_titles() {
+export function initEditableFolderTitles() {
 	initTinyMCE({
 		selector: ".editable.folder-title",
 		setup: function (editor) {
@@ -53,14 +49,13 @@ export function init_editable_folder_titles() {
 				var editableTitle = editor.getElement();
 				var folderId = editableTitle.getAttribute("data-folder-id");
 				var folderTitle = editor.getContent();
-				rename_single_folder(folderId, folderTitle);
+				renameSingleFolder(folderId, folderTitle);
 			});
 		},
-		suppressPassiveWarnings: true, // Set to true if you want to suppress warnings for this instance
+		suppressPassiveWarnings: true,
 	});
 }
 
-// Init folders on document ready
 addEventListenerIfExists("document", "DOMContentLoaded", () => {
-	init_editable_folder_titles();
+	initEditableFolderTitles();
 });

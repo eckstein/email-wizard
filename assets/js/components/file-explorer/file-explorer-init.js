@@ -1,30 +1,31 @@
-import { create_new_wizard_folder, open_folder_title_editor, select_folder } from "./folders.js";
+import { createNewWizardFolder, openFolderTitleEditor, selectFolder } from "./folders.js";
 import {
-	duplicate_single_template,
-	restore_templates,
-	delete_templates_forever,
+	duplicateSingleTemplate,
+	restoreTemplates,
+	deleteTemplatesForever,
 } from "./templates.js";
-import { move_items, delete_items, show_delete_confirm, show_restore_confirm } from "./common.js";
+import { moveItems, deleteItems, showDeleteConfirm, showRestoreConfirm } from "./common.js";
 import {
 	addEventListenerIfExists,
-	show_error_toast,
-	show_success_toast,
+	showErrorToast,
+	showSuccessToast,
 } from "../../utils/functions.js";
 
 import { handleNewTeam } from "../teams/teams-actions.js";
 import { initSearch } from "./search.js";
 import { initPaginationControls } from './pagination.js';
 
-export function init_file_explorer() {
+export { initFileExplorer };
+
+function initFileExplorer() {
 	setupEventListeners();
 	setupBulkActions();
 	initSearch();
 	initPaginationControls();
 }
 
-// Initialize file explorer when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-	init_file_explorer();
+	initFileExplorer();
 	initSearch();
 });
 
@@ -43,26 +44,24 @@ function setupBulkActions() {
 	);
 }
 
-
-
 function handleCreateFolder() {
-	create_new_wizard_folder(wizard.current_folder_id);
+	createNewWizardFolder(wizard.current_folder_id);
 }
 
 async function handleMoveItems(items) {
 	try {
-		const result = await select_folder("Select destination folder");
+		const result = await selectFolder("Select destination folder");
 		if (!result.value) {
 			console.log("Folder selection was cancelled");
 			return;
 		}
 
 		const destinationFolderId = result.value;
-		await move_items(items, destinationFolderId);
+		await moveItems(items, destinationFolderId);
 		
 	} catch (error) {
 		console.error("Error in move operation:", error);
-		show_error_toast(`Failed to move items: ${error.message}`);
+		showErrorToast(`Failed to move items: ${error.message}`);
 	}
 }
 
@@ -106,31 +105,31 @@ function handleDeleteItem(event) {
 
 	if (!itemId) {
 		console.error(`${itemType} ID is missing.`);
-		show_error_toast(`Cannot delete ${itemType}: ID is missing`);
+		showErrorToast(`Cannot delete ${itemType}: ID is missing`);
 		return;
 	}
 
-	delete_items([{ value: itemId, dataset: { type: itemType } }]);
+	deleteItems([{ value: itemId, dataset: { type: itemType } }]);
 }
 
 function handleRestoreTemplate(event) {
 	const templateId = event.target.dataset.templateId;
 	if (!templateId) {
 		console.error("Template ID is missing.");
-		show_error_toast("Template ID is missing");
+		showErrorToast("Template ID is missing");
 		return;
 	}
-	showRestoreConfirmation([templateId]);
+	handleTemplateRestore([templateId]);
 }
 
 function handleDeleteForever(event) {
 	const templateId = event.target.dataset.templateId;
 	if (!templateId) {
 		console.error("Template ID is missing.");
-		show_error_toast("Template ID is missing");
+		showErrorToast("Template ID is missing");
 		return;
 	}
-	showDeleteForeverConfirmation([event.target], [templateId]);
+	handleTemplateDeleteForever([{ value: templateId, dataset: { type: 'template' } }]);
 }
 
 function handleMoveSelected() {
@@ -138,16 +137,16 @@ function handleMoveSelected() {
 	if (selectedItems.length > 0) {
 		handleMoveItems(selectedItems);
 	} else {
-		show_error_toast("No items selected for moving");
+		showErrorToast("No items selected for moving");
 	}
 }
 
 function handleDeleteSelected() {
 	const selectedItems = getSelectedItems();
 	if (selectedItems.length > 0) {
-		delete_items(selectedItems);
+		deleteItems(selectedItems);
 	} else {
-		show_error_toast("No items selected for deletion");
+		showErrorToast("No items selected for deletion");
 	}
 }
 
@@ -155,17 +154,16 @@ function handleRestoreSelected() {
 	const templates = getSelectedItems();
 	if (templates.length > 0) {
 		const templateIds = templates.map((item) => item.value);
-		showRestoreConfirmation(templateIds);
+		handleTemplateRestore(templateIds);
 	} else {
-		show_error_toast("No items selected for restoration");
+		showErrorToast("No items selected for restoration");
 	}
 }
 
 function handleDeleteSelectedForever() {
 	const templates = getSelectedItems();
 	if (templates.length > 0) {
-		const templateIds = templates.map((item) => item.value);
-		showDeleteForeverConfirmation(templates, templateIds);
+		handleTemplateDeleteForever(templates);
 	}
 }
 
@@ -175,7 +173,7 @@ function handleDuplicateTemplate(event) {
 		console.error("Template ID is missing.");
 		return;
 	}
-	duplicate_single_template(templateId);
+	duplicateSingleTemplate(templateId);
 }
 
 function handleBulkCheckChange(event) {
@@ -200,7 +198,7 @@ function handleEditFolderTitle(event) {
 		console.error("Folder ID is missing.");
 		return;
 	}
-	open_folder_title_editor(folderId, existingName);
+	openFolderTitleEditor(folderId, existingName);
 }
 
 function getSelectedItems() {
@@ -228,20 +226,27 @@ function updateBulkActionsState(isChecked) {
 	}
 }
 
-function showRestoreConfirmation(templateIds) {
-	show_restore_confirm(templateIds).then((result) => {
+async function handleTemplateRestore(templateIds) {
+	try {
+		const result = await showRestoreConfirm(templateIds);
 		if (result.isConfirmed) {
-			restore_templates(templateIds);
+			await restoreTemplates(templateIds);
 		}
-	});
+	} catch (error) {
+		showErrorToast(`Error restoring templates: ${error.message}`);
+	}
 }
 
-function showDeleteForeverConfirmation(templates, templateIds) {
-	show_delete_confirm(templates, true).then((result) => {
+async function handleTemplateDeleteForever(templates) {
+	try {
+		const templateIds = templates.map(t => t.value);
+		const result = await showDeleteConfirm(templates, true);
 		if (result.isConfirmed) {
-			delete_templates_forever(templateIds);
+			await deleteTemplatesForever(templateIds);
 		}
-	});
+	} catch (error) {
+		showErrorToast(`Error deleting templates: ${error.message}`);
+	}
 }
 
 
