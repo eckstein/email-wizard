@@ -4,8 +4,8 @@ import "tinymce/models/dom";
 
 tinymce.baseURL = "/tinymce";
 
-import { renameSingleFolder } from "../components/file-explorer/folders";
-import { addEventListenerIfExists } from "./functions";
+import { handleEditFolderTitle } from "../components/file-explorer/handlers/folders.js";
+import { addEventListenerIfExists } from "./functions.js";
 
 function suppressPassiveWarnings() {
 	const originalAddEventListener = EventTarget.prototype.addEventListener;
@@ -48,8 +48,7 @@ export function initEditableFolderTitles() {
 			editor.on("change", function () {
 				var editableTitle = editor.getElement();
 				var folderId = editableTitle.getAttribute("data-folder-id");
-				var folderTitle = editor.getContent();
-				renameSingleFolder(folderId, folderTitle);
+				handleEditFolderTitle({ target: { dataset: { editable: folderId } } });
 			});
 		},
 		suppressPassiveWarnings: true,

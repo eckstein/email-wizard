@@ -1,27 +1,4 @@
 import {
-	createSingleTemplate,
-	duplicateSingleTemplate,
-	selectFolder,
-	openFolderTitleEditor,
-	createNewWizardFolder,
-	renameSingleFolder,
-	initFileExplorer,
-	moveItems,
-	deleteItems,
-	showDeleteConfirm,
-	showRestoreConfirm,
-	saveTemplateFormData,
-	restoreTemplates,
-	deleteTemplatesForever,
-	initTeamHandler,
-	handleNewTeam,
-	showCreateTeamDialog,
-	createTeamRequest,
-	switchTeam,
-	templateTableAPI
-} from "./components";
-
-import {
 	toggleWizardDropdown,
 	hideWizardDropdown,
 	ddRepeaterRow,
@@ -40,3 +17,8 @@ import {
 	initSlideover,
 	removeUrlParameter,
 } from "./utils";
+
+document.addEventListener("DOMContentLoaded", () => {
+	checkUrlParamsForToasts();
+	initEditableFolderTitles();
+});
