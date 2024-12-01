@@ -1,0 +1,53 @@
+/**
+ * Plugin Footer Styles
+ * Extends theme footer styles for plugin-specific elements
+ */
+
+.wizard-footer {
+    padding: var(--spacing-md);
+    background-color: var(--color-secondary);
+    border-top: 1px solid var(--color-border);
+}
+
+/* Plugin footer content layout */
+.wizard-footer__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* Plugin footer sections */
+.wizard-footer__section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Plugin footer links */
+.wizard-footer__link {
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: color var(--transition-fast);
+}
+
+.wizard-footer__link:hover {
+    color: var(--color-primary);
+}
+
+/* Plugin footer status indicators */
+.wizard-footer__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.9em;
+    color: var(--color-text-light);
+}
+
+.wizard-footer__status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-success);
+} 

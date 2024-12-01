@@ -1,0 +1,58 @@
+/**
+ * Plugin Sidebar Styles
+ * Extends theme sidebar styles for plugin-specific elements
+ */
+
+.wizard-sidebar {
+    width: 250px;
+    background-color: var(--color-secondary);
+    border-right: 1px solid var(--color-border);
+    padding: var(--spacing-md);
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Plugin sidebar navigation */
+.wizard-sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.wizard-sidebar__nav-item {
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.wizard-sidebar__nav-item:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.wizard-sidebar__nav-item.active {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Plugin sidebar sections */
+.wizard-sidebar__section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.wizard-sidebar__section-title {
+    font-size: 0.9em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+    padding: 0 var(--spacing-sm);
+}
+
+/* Plugin sidebar footer */
+.wizard-sidebar__footer {
+    margin-top: auto;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+} 

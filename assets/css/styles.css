@@ -1,25 +1,33 @@
-/* Import external library css */
+/**
+ * Email Wizard Styles
+ * Main entry point for all styles
+ */
+
+/* Vendor Styles */
 @import '../../node_modules/sweetalert2/dist/sweetalert2.min.css';
 @import "../../node_modules/nice-select2/dist/css/nice-select2.css";
-@import "./swal2.css";
+@import "./vendors/_sweetalert2.css";
 
-/* Global Components */
-@import "./global.css";
+/* Base Styles */
+@import "./base/_variables.css";
+@import "./base/_reset.css";
+@import "./base/_global.css";
 
-/* Forms */
-@import "./forms.css";
+/* Theme Styles */
+@import "./theme/_theme-styles.css";
 
-/* Single Template */
-@import "./single-template.css";
+/* Component Styles */
+@import "./components/_forms.css";
+@import "./components/_tabs.css";
+@import "./components/_slideover.css";
 
-/* Template Archive */
-@import "./template-archive.css";
+/* Layout Styles */
+@import "./layouts/_header.css";
+@import "./layouts/_sidebar.css";
+@import "./layouts/_footer.css";
 
-/* Account Page */
-@import "./page-account.css";
-
-/* Slideover */
-@import "./slideover.css";
-
-/* Tabs */
-@import "./tabs.css";
+/* Page Styles */
+@import "./pages/_template.css";
+@import "./pages/_template-archive.css";
+@import "./pages/_account.css";
+@import "./pages/_team-settings.css";

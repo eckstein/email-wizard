@@ -8,14 +8,15 @@ class WizardFolders
 
     public function __construct($user_id, $team_id = null)
     {
+        global $wpdb;
+        $this->wpdb = $wpdb;
+        $this->table_name = $wpdb->prefix . 'user_folders';
+
         // Check if user is logged in
         if (!is_user_logged_in()) {
             return;
         }
 
-        global $wpdb;
-        $this->wpdb = $wpdb;
-        $this->table_name = $wpdb->prefix . 'user_folders';
         $this->user_id = $user_id;
         
         $teams = new WizardTeams();
@@ -211,6 +212,11 @@ class WizardFolders
 
     public function get_folder($folder_id)
     {
+        // Return null if wpdb is not initialized
+        if (!$this->wpdb || !is_user_logged_in()) {
+            return null;
+        }
+
         return $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT * FROM {$this->table_name} WHERE id = %d AND (created_by = %d AND team_id = %d)",
             $folder_id,
