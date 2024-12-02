@@ -10,19 +10,20 @@ export {
     getFolderRowHtml
 };
 
-async function createFolder(parentFolderId) {
+async function createFolder(folderName, parentFolderId) {
     try {
         const response = await fetch(wizard.ajaxurl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-                action: "create_wizard_folder",
-                nonce: wizard.nonce,
-                parent_id: parentFolderId,
-            }),
-        });
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: new URLSearchParams({
+				action: "add_wizard_user_folder",
+				nonce: wizard.nonce,
+				folder_name: folderName,
+				parent_id: parentFolderId,
+			}),
+		});
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

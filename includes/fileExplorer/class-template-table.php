@@ -49,7 +49,7 @@ class WizardTemplateTable
         }
 
         $this->args = $args;
-        $this->template_manager = new WizardTemplates();
+        $this->template_manager = new WizardTemplateManager();
 
         add_action('pre_get_posts', array($this, 'modify_template_query'));
     }
@@ -723,7 +723,7 @@ class WizardTemplateTable
 
     private function render_template_row($template_id)
     {
-        $templateManager = new WizardTemplates();
+        $templateManager = new WizardTemplateManager();
         $template = $templateManager->get_template($template_id);
 
         if (!$template) {

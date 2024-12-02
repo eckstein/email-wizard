@@ -305,7 +305,7 @@ class WizardFolders
 
     public function get_templates_in_folder($folder_id, $recursive = false)
     {
-        $template_manager = new WizardTemplates();
+        $template_manager = new WizardTemplateManager();
         return $template_manager->get_templates_by_folders($folder_id, [
             'recursive' => $recursive
         ]);

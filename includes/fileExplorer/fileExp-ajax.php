@@ -312,7 +312,7 @@ function ajax_get_templates_in_wizard_user_folders()
 
     if (!empty($templates)) {
         $formatted_templates = array_map(function ($template) {
-            $templateManager = new WizardTemplates();
+            $templateManager = new WizardTemplateManager();
             $wizTemplate = $templateManager->get_template($template->ID);
             $template->post_modified = $wizTemplate['last_updated'];
             return [

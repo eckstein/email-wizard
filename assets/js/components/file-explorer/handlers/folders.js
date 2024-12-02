@@ -18,11 +18,11 @@ function createNewWizardFolder(parentFolderId = "root") {
                 throw new Error("User cancelled");
             }
             const folderName = result.value.folderName;
-            return createFolder(parentFolderId, folderName);
+            return createFolder(folderName, parentFolderId);
         })
-        .then((newFolderId) => {
-            if (newFolderId) {
-                return getFolderRowHtml(parentFolderId, newFolderId);
+        .then((response) => {
+            if (response && response.folder_id) {
+                return getFolderRowHtml(parentFolderId, response.folder_id);
             }
             throw new Error("No folder ID returned");
         })
