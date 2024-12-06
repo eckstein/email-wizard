@@ -25,12 +25,24 @@ function add_repeater_row(repeater) {
 }
 
 function remove_repeater_row(repeater, row) {
-	// Remove the row from the repeater
+	// Remove the row
 	row.remove();
 
+	// Reindex remaining rows
+	const rows = repeater.querySelectorAll(".repeater-row:not(.repeater-row-template)");
+	rows.forEach((row, index) => {
+		// Update all input names in this row to use the new index
+		const inputs = row.querySelectorAll('input, select, textarea');
+		inputs.forEach(input => {
+			const name = input.getAttribute('name');
+			if (name) {
+				input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+			}
+		});
+	});
+
 	// Show the empty repeater message if there are no rows left
-	const row_count = repeater.querySelectorAll(".repeater-row").length;
-	if (row_count === 0) {
+	if (rows.length === 0) {
 		const empty_message = repeater.querySelector(".empty-repeater-message");
 		if (empty_message) {
 			empty_message.style.display = 'block';
@@ -49,7 +61,8 @@ document.addEventListener("click", function(e) {
 
 // Removing a row
 document.addEventListener("click", function(e) {
-	if (e.target.matches(".wizard-form-fieldgroup.repeater .remove-row:not(.disabled)")) {
+	// Check if the clicked element is within a .remove-row element
+	if (e.target.closest(".wizard-form-fieldgroup.repeater .remove-row:not(.disabled)")) {
 		e.preventDefault();
 		const repeater = e.target.closest(".wizard-form-fieldgroup.repeater");
 		const row = e.target.closest(".repeater-row");

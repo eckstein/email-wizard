@@ -1,0 +1,186 @@
+/* Login Form Container */
+.login-page {
+    max-width: 460px;
+    margin: 40px auto;
+}
+.login-page .wizard-form-content {
+    gap: 10px;
+}
+/* Login Form Specific Styles */
+#loginform {
+    
+}
+
+#loginform p {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+/* Login header container */
+.login-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.login-logo {
+    width: 100px;
+    margin-bottom: 24px;
+}
+
+
+/* Labels */
+#loginform label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Text Inputs */
+#loginform input[type="text"],
+#loginform input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #f8f9fa;
+    font-size: 15px;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+#loginform input[type="text"]:focus,
+#loginform input[type="password"]:focus {
+    background: #fff;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0, 109, 119, 0.1);
+    outline: none;
+}
+
+/* Remember Me Checkbox */
+.forgetmenot {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+}
+
+.forgetmenot label {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0 !important;
+    user-select: none;
+}
+
+#rememberme {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    appearance: none;
+    background: #fff;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+#rememberme:checked {
+    background: var(--teal);
+    border-color: var(--teal);
+}
+
+#rememberme:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+#rememberme:focus {
+    box-shadow: 0 0 0 3px rgba(0, 109, 119, 0.1);
+    outline: none;
+}
+
+/* Lost Password Link */
+.lost-password-link {
+    display: block;
+    text-align: right;
+}
+
+/* Submit Button */
+#wp-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+#wp-submit:hover {
+    background: var(--teal-dark, #006d77);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 109, 119, 0.2);
+}
+
+#wp-submit:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Loading State */
+#wp-submit.loading {
+    position: relative;
+    color: transparent;
+}
+
+#wp-submit.loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: button-loading 0.6s linear infinite;
+}
+
+@keyframes button-loading {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .login-page {
+        margin: 20px;
+    }
+
+    #loginform input[type="text"],
+    #loginform input[type="password"] {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    #wp-submit {
+        padding: 12px;
+    }
+} 

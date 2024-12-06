@@ -13,12 +13,12 @@ add_filter('template_include', function ($template) {
         [
             'condition' => 'is_singular',
             'type' => 'wiz_template',
-            'path' => 'single-template/single-wiz_template.php'
+            'path' => 'single/single-wiz_template.php'
         ],
         [
             'condition' => 'is_post_type_archive',
             'type' => 'wiz_template',
-            'path' => 'template-archive/archive-wiz_template.php'
+            'path' => 'archive/archive-wiz_template.php'
         ],
         [
             'condition' => 'url_contains',

@@ -1,12 +1,12 @@
 <?php
-
-// Redirect non-logged in users to login page
-if (!is_user_logged_in()) {
-    wp_safe_redirect(wp_login_url(get_permalink()));
-    exit;
-}
+/**
+ * Template Name: Account Page
+ */
 
 get_header();
+
+// The auth check is now handled automatically by WizardAuth
+// No need for manual auth checks here anymore
 
 $accountManager = new WizardAccount();
 $accountManager->init(); // Process any form submission

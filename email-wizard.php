@@ -40,7 +40,18 @@ foreach ($iterator as $file) {
 	}
 }
 
-
+// Initialize the auth system
+function init_wizard_auth() {
+    global $wizard_auth;
+    $wizard_auth = new WizardAuth();
+    
+    // Register protected pages
+    apply_filters('wizard_protected_pages', [
+        'account',
+        'templates'
+    ]);
+}
+add_action('init', 'init_wizard_auth', 5);
 
 // Plugin activation hook
 function email_wizard_activate() {

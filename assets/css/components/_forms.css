@@ -1,3 +1,20 @@
+
+textarea,
+input[type="text"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="search"],
+input[type="password"] {
+	-webkit-appearance: none;
+	appearance: none;
+	border-radius: 0;
+}
+input[type="search"] {
+	-webkit-appearance: textfield;
+	appearance: textfield;
+}
+
 h3.wizard-form-section-title {
 	color: #343434;
 	padding: 10px 0;

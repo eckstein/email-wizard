@@ -1,4 +1,15 @@
 <?php
+
+// Hide main nav menu items if user is not logged in
+add_filter('wp_nav_menu_items', 'hide_main_nav_menu_items_if_not_logged_in', 10, 2);
+function hide_main_nav_menu_items_if_not_logged_in($items, $args)
+{
+    if (!is_user_logged_in()) {
+        $items = '';
+    }
+    return $items;
+}
+
 // Theme header wizard and account menu
 add_action('wizard_header_secondary_nav', 'generate_wizard_app_nav_menu');
 
@@ -9,15 +20,19 @@ function generate_wizard_app_nav_menu()
         itemtype="https://schema.org/SiteNavigationElement">
         <?php if (is_user_logged_in()) : ?>
             <ul>
-                <li><button class="wizard-button new-template"><i class="fa-solid fa-plus"></i>&nbsp;&nbsp;New
-                        Template</button>
-                </li>
-
                 <li id="user-dropdown" class="wizard-slideover-trigger">
                     <div class="wizard-avatar">
                         <?php 
                         $avatar = new WizardAvatar();
                         echo $avatar->get_avatar(32);
+                        ?>
+                    </div>
+                    <div class="user-team-name">
+                        <?php
+                        $teamsManager = new WizardTeams();
+                        $currentTeamID = $teamsManager->get_active_team(get_current_user_id());
+                        $currentTeam = $teamsManager->get_team($currentTeamID);
+                        echo $currentTeam->name;
                         ?>
                     </div>
                 </li>
