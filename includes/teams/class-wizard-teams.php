@@ -450,12 +450,20 @@ class WizardTeams
      * Update team avatar
      * 
      * @param int $team_id Team ID
-     * @param int $attachment_id WordPress attachment ID for avatar
+     * @param array $file $_FILES array element
      * @return bool|WP_Error True on success, WP_Error on failure
      */
-    public function update_team_avatar($team_id, $attachment_id) {
+    public function update_team_avatar($team_id, $file) {
         if (!$this->team_exists($team_id)) {
             return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        // Use WizardAvatar for validation and processing
+        $avatar_handler = new WizardAvatar();
+        $attachment_id = $avatar_handler->handle_upload($file);
+        
+        if (is_wp_error($attachment_id)) {
+            return $attachment_id;
         }
 
         // Delete old avatar if exists
@@ -470,6 +478,8 @@ class WizardTeams
         );
 
         if ($result === false) {
+            // Clean up the uploaded file if database update fails
+            wp_delete_attachment($attachment_id, true);
             return new WP_Error('avatar_update_failed', 'Failed to update team avatar: ' . $this->wpdb->last_error);
         }
 

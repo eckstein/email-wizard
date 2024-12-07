@@ -3,6 +3,9 @@ $teamsManager = new WizardTeams();
 $userTeams = $teamsManager->get_user_teams(get_current_user_id());
 $currentTeam = $teamsManager->get_active_team(get_current_user_id());
 $showMemberManagement = isset($_GET['manage_members']) && $_GET['manage_members'] === '1';
+
+// Include messages partial
+include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partials/messages.php');
 ?>
 
 <div class="wizard-teams-container">
@@ -156,6 +159,7 @@ $showMemberManagement = isset($_GET['manage_members']) && $_GET['manage_members'
                                     <?php wp_nonce_field('wizard_update_team_settings', 'wizard_update_team_settings_nonce'); ?>
                                     <input type="hidden" name="wizard_form_action" value="update_team_settings">
                                     <input type="hidden" name="team_id" value="<?php echo esc_attr($team->id); ?>">
+                                    <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
                                     
                                     <div class="wizard-team-avatar">
                                         <div class="avatar-controls">

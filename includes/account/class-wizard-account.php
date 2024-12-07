@@ -56,16 +56,13 @@ class WizardAccount extends WizardTabs {
      * Handles form submissions and message display.
      */
     public function init() {
-        if (isset($_POST['wizard_form_action'])) {
-            $this->handle_form_submission();
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
 
-        if (isset($_GET['wizard_message'])) {
-            $message = get_transient('wizard_account_message_' . get_current_user_id());
-            if ($message) {
-                $this->messages[] = $message;
-                delete_transient('wizard_account_message_' . get_current_user_id());
-            }
+        if (isset($_POST['wizard_form_action'])) {
+            $this->handle_form_submission();
         }
     }
 
@@ -179,27 +176,30 @@ class WizardAccount extends WizardTabs {
             
             // Handle avatar upload if present
             if (!empty($_FILES['avatar']['name'])) {
-                $avatar_id = $processor->process_file('avatar', 
-                    ['jpg', 'jpeg', 'png', 'gif'], 
-                    5 * 1024 * 1024
-                );
+                $avatar_handler = new WizardAvatar($user_id);
+                $avatar_result = $avatar_handler->handle_upload($_FILES['avatar']);
 
-                if ($avatar_id && !is_wp_error($avatar_id)) {
-                    $existing_avatar_id = get_user_meta($user_id, 'local_avatar', true);
-                    if ($existing_avatar_id) {
-                        wp_delete_attachment($existing_avatar_id, true);
+                if (is_wp_error($avatar_result)) {
+                    $this->add_message('error', 'Avatar upload failed: ' . $avatar_result->get_error_message());
+                } else {
+                    $set_result = $avatar_handler->set_avatar($avatar_result);
+                    if (is_wp_error($set_result)) {
+                        $this->add_message('error', 'Failed to set avatar: ' . $set_result->get_error_message());
+                        wp_delete_attachment($avatar_result, true);
+                    } else {
+                        $updated = true;
                     }
-                    update_user_meta($user_id, 'local_avatar', $avatar_id);
-                    $updated = true;
                 }
             }
 
             // Handle avatar deletion
             if (isset($_POST['delete_avatar'])) {
-                $avatar_id = get_user_meta($user_id, 'local_avatar', true);
-                if ($avatar_id) {
-                    wp_delete_attachment($avatar_id, true);
-                    delete_user_meta($user_id, 'local_avatar');
+                $avatar_handler = new WizardAvatar($user_id);
+                $delete_result = $avatar_handler->delete_avatar();
+                
+                if (is_wp_error($delete_result)) {
+                    $this->add_message('error', 'Failed to delete avatar: ' . $delete_result->get_error_message());
+                } else {
                     $updated = true;
                 }
             }
@@ -241,23 +241,24 @@ class WizardAccount extends WizardTabs {
     /**
      * Add a message to be displayed to the user.
      * 
-     * Handles both immediate display and redirect scenarios using transients.
+     * Handles both immediate display and redirect scenarios using sessions.
      * 
      * @param string $type The message type ('error', 'success', etc.)
      * @param string $text The message text to display
      */
     private function add_message($type, $text)
     {
-        $message = [
+        if (!isset($_SESSION['wizard_account_messages'])) {
+            $_SESSION['wizard_account_messages'] = [];
+        }
+
+        $_SESSION['wizard_account_messages'][] = [
             'type' => $type,
             'text' => $text
         ];
 
-        if (defined('DOING_AJAX') || headers_sent()) {
-            $this->messages[] = $message;
-        } else {
-            set_transient('wizard_account_message_' . get_current_user_id(), $message, 60);
-            wp_safe_redirect(add_query_arg('wizard_message', '1', remove_query_arg(array_keys($_GET))));
+        if (!defined('DOING_AJAX') && !headers_sent()) {
+            wp_safe_redirect(remove_query_arg(array_keys($_GET)));
             exit;
         }
     }
@@ -303,19 +304,8 @@ class WizardAccount extends WizardTabs {
 
             // Handle file upload if present
             if (!empty($_FILES['team_avatar']['name'])) {
-                $avatar_id = $processor->process_file('team_avatar', 
-                    ['jpg', 'jpeg', 'png', 'gif'], 
-                    5 * 1024 * 1024
-                );
-                
-                if (is_wp_error($avatar_id)) {
-                    $this->add_message('error', $avatar_id->get_error_message());
-                    return;
-                }
-                
-                $result = $teams->update_team_avatar($team_id, $avatar_id);
+                $result = $teams->update_team_avatar($team_id, $_FILES['team_avatar']);
                 if (is_wp_error($result)) {
-                    wp_delete_attachment($avatar_id, true);
                     $this->add_message('error', $result->get_error_message());
                     return;
                 }

@@ -15,6 +15,7 @@ if (isset($_SESSION['wizard_account_messages'])) {
     <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="wizard_form_action" value="update_account">
         <?php wp_nonce_field('wizard_update_account', 'wizard_update_account_nonce'); ?>
+        <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
 
         <div class="wizard-form-fieldgroup">
             <div class="wizard-form-fieldgroup-label">Profile Picture</div>

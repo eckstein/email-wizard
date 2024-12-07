@@ -6,10 +6,8 @@ function wizard_account_form_redirects() {
         return;
     }
 
-    // Remove wizard_message parameter after it's been processed
-    if (isset($_GET['wizard_message'])) {
-        $current_tab = isset($_GET['tab']) ? '?tab=' . $_GET['tab'] : '';
-        wp_safe_redirect(remove_query_arg('wizard_message') . $current_tab);
-        exit;
+    // Start session if not already started
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
     }
 } 
