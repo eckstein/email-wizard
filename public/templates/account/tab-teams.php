@@ -168,19 +168,24 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                                 <input type="file" 
                                                     name="team_avatar" 
                                                     id="team-avatar-<?php echo $team->id; ?>" 
-                                                    accept="image/jpeg,image/png,image/gif">
+                                                    data-team-id="<?php echo esc_attr($team->id); ?>"
+                                                    accept="image/jpeg,image/png,image/gif"
+                                                    data-max-size="5242880">
                                             </label>
                                             <?php if ($teamsManager->has_team_avatar($team->id)): ?>
                                                 <button type="submit" 
                                                     name="delete_team_avatar" 
                                                     value="1"
-                                                    class="wizard-button small red button-text delete-avatar"
+                                                    data-team-id="<?php echo esc_attr($team->id); ?>"
+                                                    class="wizard-button small red button-text delete-team-avatar"
                                                     title="Remove team avatar">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             <?php endif; ?>
                                         </div>
-                                        <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                                        <div class="team-avatar-container" id="team-avatar-<?php echo $team->id; ?>-container">
+                                            <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                                        </div>
                                     </div>
                                     
                                     <div class="wizard-team-info">

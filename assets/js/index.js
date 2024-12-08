@@ -25,10 +25,11 @@ import { initSlideover } from "./utils/ui/slideover";
 import { initEditableFolderTitles } from "./utils/tinymce";
 import { checkUrlParamsForToasts } from "./utils/ui/swal2";
 import { ddRepeaterRow, removeRepeaterRow } from "./utils/forms";
-import { initTeams } from "./components/teams";
+import { initTeams, initAccountPage } from "./components";
 
 document.addEventListener("DOMContentLoaded", () => {
 	checkUrlParamsForToasts();
 	initEditableFolderTitles();
 	initTeams();
+	initAccountPage();
 });

@@ -6,7 +6,7 @@ export {
 	restoreTemplates,
 	deleteTemplatesForever,
 	templateTableAPI
-} from './file-explorer/template-table-api';
+} from './file-explorer/services/template-table-api';
 
 // Folder Operations
 export {
@@ -15,7 +15,7 @@ export {
 	createNewWizardFolder,
 	renameSingleFolder,
 	initFileExplorer
-} from './file-explorer/folders';
+} from './file-explorer/handlers/folders';
 
 // Item Operations
 export {
@@ -23,10 +23,17 @@ export {
 	deleteItems,
 	showDeleteConfirm,
 	showRestoreConfirm
-} from './file-explorer/common';
+} from './file-explorer/core/common';
 
 // Team Management
 export {
 	initTeamHandler,
 	handleNewTeam
 } from './teams/handlers/team-actions';
+
+// Account Management
+export {
+	initAccountPage
+} from './account/index';
+
+export { initTeams } from './teams';

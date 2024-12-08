@@ -2,14 +2,12 @@
 add_action('wp_enqueue_scripts', 'email_wizard_enqueue_assets');
 function email_wizard_enqueue_assets()
 {
-
 	// Enqueue CSS bundle
 	wp_enqueue_style('emailwizard-style', plugin_dir_url(dirname(dirname(__FILE__))) . 'assets/dist/styles.css', array(), EMAILWIZARD_VERSION);
 
 	// Enqueue script bundle
 	wp_enqueue_script('emailwizard-bundle', plugin_dir_url(dirname(dirname(__FILE__))) . 'assets/dist/index.js', array('jquery'), EMAILWIZARD_VERSION, true);
 }
-
 
 add_action('wp_head', 'email_wizard_localize_script_bundle');
 function email_wizard_localize_script_bundle()

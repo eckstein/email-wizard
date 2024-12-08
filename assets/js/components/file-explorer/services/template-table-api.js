@@ -1,5 +1,8 @@
 // template-table-api.js
 
+import { showSuccessToast, showErrorToast } from '../../../utils/notification-utils';
+import { initFileExplorer } from '../core';
+
 export const templateTableAPI = {
 	
 
@@ -46,6 +49,7 @@ export const templateTableAPI = {
 			};
 		} catch (error) {
 			console.error('Error fetching table part:', error);
+			showErrorToast(error.message);
 			return {
 				success: false,
 				error: error.message
@@ -81,9 +85,7 @@ export const templateTableAPI = {
 
 	initializeComponents() {
 		// Re-initialize any necessary components or event listeners
-		if (typeof init_file_explorer === 'function') {
-			init_file_explorer();
-		}
+		initFileExplorer();
 	},
 
 	// Utility methods
@@ -97,14 +99,5 @@ export const templateTableAPI = {
 				}, duration);
 			}
 		}, 300);
-	},
-
-	showToast(message, type = "success") {
-		if (typeof show_success_toast === "function" && type === "success") {
-			show_success_toast(message);
-		}
-		if (typeof show_error_toast === "function" && type === "error") {
-				show_error_toast(message);
-		}
 	}
 };

@@ -12,7 +12,7 @@ if (isset($_SESSION['wizard_account_messages'])) {
 ?>
 
 <div class="wizard-form-content">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" class="avatar-form">
         <input type="hidden" name="wizard_form_action" value="update_account">
         <?php wp_nonce_field('wizard_update_account', 'wizard_update_account_nonce'); ?>
         <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
@@ -21,7 +21,7 @@ if (isset($_SESSION['wizard_account_messages'])) {
             <div class="wizard-form-fieldgroup-label">Profile Picture</div>
             <div class="wizard-form-fieldgroup-value">
                 <div class="avatar-section">
-                    <div class="current-avatar">
+                    <div class="current-avatar" id="user-avatar-container">
                         <?php
                         $avatar = new WizardAvatar();
                         echo $avatar->get_avatar(96);
@@ -33,12 +33,13 @@ if (isset($_SESSION['wizard_account_messages'])) {
                             <input type="file"
                                 name="avatar"
                                 id="avatar-upload"
-                                accept="image/jpeg,image/png,image/gif">
-
+                                accept="image/jpeg,image/png,image/gif"
+                                data-max-size="5242880">
                         </label>
                         <button type="submit"
                             name="delete_avatar"
                             value="1"
+                            id="delete-avatar"
                             class="wizard-button small red button-text delete-avatar"
                             title="Remove avatar"
                             <?php echo !$avatar->has_custom_avatar() ? 'disabled' : ''; ?>>
@@ -47,9 +48,7 @@ if (isset($_SESSION['wizard_account_messages'])) {
                         <p class="field-description">Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF.</p>
                     </div>
                 </div>
-
             </div>
-
         </div>
 
         <div class="wizard-form-fieldgroup">
