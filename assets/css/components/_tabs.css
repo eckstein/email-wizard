@@ -85,3 +85,29 @@
 .wizard-tab-content.active {
     display: block;
 }
+
+/* Loading State */
+.wizard-tab-content.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.wizard-tab-content.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--teal-light);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: tab-loading 0.8s infinite linear;
+}
+
+@keyframes tab-loading {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}

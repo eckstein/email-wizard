@@ -88,21 +88,21 @@ if (isset($_SESSION['wizard_account_messages'])) {
         <div class="wizard-form-fieldgroup">
             <div class="wizard-form-fieldgroup-label">Current Password</div>
             <div class="wizard-form-fieldgroup-value">
-                <input type="password" id="current_password" name="current_password">
+                <input type="password" id="current_password" name="current_password" autocomplete="current-password">
             </div>
         </div>
 
         <div class="wizard-form-fieldgroup">
             <div class="wizard-form-fieldgroup-label">New Password</div>
             <div class="wizard-form-fieldgroup-value">
-                <input type="password" id="new_password" name="new_password">
+                <input type="password" id="new_password" name="new_password" autocomplete="new-password">
             </div>
         </div>
 
         <div class="wizard-form-fieldgroup">
             <div class="wizard-form-fieldgroup-label">Confirm Password</div>
             <div class="wizard-form-fieldgroup-value">
-                <input type="password" id="confirm_password" name="confirm_password">
+                <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password">
             </div>
         </div>
 

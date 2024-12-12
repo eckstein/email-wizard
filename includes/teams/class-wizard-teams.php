@@ -493,44 +493,39 @@ class WizardTeams
      * @return bool|WP_Error True on success, WP_Error on failure
      */
     public function delete_team_avatar($team_id) {
+        if (!$this->team_exists($team_id)) {
+            return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        // Get current avatar ID
         $team = $this->get_team($team_id);
         if (is_wp_error($team)) {
             return $team;
         }
 
         if ($team->avatar) {
-            wp_delete_attachment($team->avatar, true);
+            // Delete the attachment
+            $delete_result = wp_delete_attachment($team->avatar, true);
+            if (is_wp_error($delete_result)) {
+                return $delete_result;
+            }
         }
 
+        // Set avatar to default
+        $default_avatar_id = get_option('wizard_default_avatar');
         $result = $this->wpdb->update(
             $this->wpdb->prefix . 'teams',
-            array('avatar' => null),
-            array('id' => $team_id),
-            array('%d'),
-            array('%d')
+            ['avatar' => $default_avatar_id ? absint($default_avatar_id) : null],
+            ['id' => $team_id],
+            ['%d'],
+            ['%d']
         );
 
         if ($result === false) {
-            return new WP_Error('avatar_delete_failed', 'Failed to delete team avatar: ' . $this->wpdb->last_error);
+            return new WP_Error('avatar_delete_failed', 'Failed to reset team avatar: ' . $this->wpdb->last_error);
         }
 
         return true;
-    }
-
-    /**
-     * Get team avatar URL
-     * 
-     * @param int $team_id Team ID
-     * @param int $size Avatar size in pixels
-     * @return string|false Avatar URL or false if no avatar
-     */
-    public function get_team_avatar_url($team_id, $size = 96) {
-        $team = $this->get_team($team_id);
-        if (is_wp_error($team) || !$team->avatar) {
-            return false;
-        }
-
-        return wp_get_attachment_image_url($team->avatar, array($size, $size));
     }
 
     /**
@@ -578,6 +573,23 @@ class WizardTeams
     }
 
     /**
+     * Get team avatar URL
+     * 
+     * @param int $team_id Team ID
+     * @param int $size Avatar size in pixels
+     * @return string Avatar URL
+     */
+    public function get_team_avatar_url($team_id, $size = 96) {
+        $team = $this->get_team($team_id);
+        if (is_wp_error($team) || !$team->avatar) {
+            return get_avatar_url(0, ['size' => $size]);
+        }
+
+        $avatar_url = wp_get_attachment_image_url($team->avatar, [$size, $size]);
+        return $avatar_url ? $avatar_url : get_avatar_url(0, ['size' => $size]);
+    }
+
+    /**
      * Check if team has a custom avatar
      * 
      * @param int $team_id Team ID
@@ -585,10 +597,7 @@ class WizardTeams
      */
     public function has_team_avatar($team_id) {
         $team = $this->get_team($team_id);
-        if (is_wp_error($team)) {
-            return false;
-        }
-        return !empty($team->avatar);
+        return !is_wp_error($team) && !empty($team->avatar);
     }
 
     /**
@@ -722,6 +731,33 @@ class WizardTeams
         if ($result === false) {
             error_log('MySQL error: ' . $this->wpdb->last_error);
             return new WP_Error('revoke_failed', 'Failed to revoke invitation: ' . $this->wpdb->last_error);
+        }
+
+        return true;
+    }
+
+    /**
+     * Set team avatar
+     * 
+     * @param int $team_id Team ID
+     * @param int $attachment_id Attachment ID of the avatar
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function set_team_avatar($team_id, $attachment_id) {
+        if (!$this->team_exists($team_id)) {
+            return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        $result = $this->wpdb->update(
+            $this->wpdb->prefix . 'teams',
+            ['avatar' => $attachment_id],
+            ['id' => $team_id],
+            ['%d'],
+            ['%d']
+        );
+
+        if ($result === false) {
+            return new WP_Error('avatar_update_failed', 'Failed to update team avatar: ' . $this->wpdb->last_error);
         }
 
         return true;

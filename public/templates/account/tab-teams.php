@@ -162,9 +162,12 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                     <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
                                     
                                     <div class="wizard-team-avatar">
+                                        <div class="current-avatar" id="team-avatar-<?php echo $team->id; ?>-container">
+                                            <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                                        </div>
                                         <div class="avatar-controls">
-                                            <label for="team-avatar-<?php echo $team->id; ?>" class="avatar-upload-overlay">
-                                                <i class="fa-solid fa-camera"></i>
+                                            <label for="team-avatar-<?php echo $team->id; ?>" class="wizard-button button-secondary">
+                                                <i class="fa-solid fa-upload"></i>&nbsp;&nbsp;Upload new
                                                 <input type="file" 
                                                     name="team_avatar" 
                                                     id="team-avatar-<?php echo $team->id; ?>" 
@@ -182,9 +185,7 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             <?php endif; ?>
-                                        </div>
-                                        <div class="team-avatar-container" id="team-avatar-<?php echo $team->id; ?>-container">
-                                            <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                                            <p class="field-description">Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF.</p>
                                         </div>
                                     </div>
                                     
@@ -200,9 +201,18 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                             </span>
                                         </div>
 
-                                        <textarea name="team_description" 
-                                            class="team-description-input" 
-                                            placeholder="Add a team description..."><?php echo esc_textarea($team->description); ?></textarea>
+                                        <div class="wizard-form-fieldgroup">
+                                            <div class="wizard-form-fieldgroup-label">Description</div>
+                                            <div class="wizard-form-fieldgroup-value">
+                                                <div class="textarea-wrapper">
+                                                    <textarea name="team_description" 
+                                                        class="team-description-input" 
+                                                        maxlength="500"
+                                                        placeholder="Add a team description..."><?php echo esc_textarea($team->description); ?></textarea>
+                                                    <div class="char-count"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         
                                         <div class="team-edit-actions">
                                             <button type="submit" class="wizard-button small">
