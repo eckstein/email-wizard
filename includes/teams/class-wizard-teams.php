@@ -410,17 +410,39 @@ class WizardTeams
     }
 
     /**
-     * Update team member role
+     * Update a team member's role
      * 
      * @param int $team_id Team ID
      * @param int $user_id User ID
-     * @param string $role New role (admin or member)
+     * @param string $role New role (member or admin)
      * @return bool|WP_Error True on success, WP_Error on failure
      */
     public function update_member_role($team_id, $user_id, $role)
     {
-        if (!in_array($role, ['admin', 'member'])) {
+        if (!$this->team_exists($team_id)) {
+            return new WP_Error('invalid_team', 'Team does not exist.');
+        }
+
+        if (!in_array($role, ['member', 'admin'])) {
             return new WP_Error('invalid_role', 'Invalid role specified.');
+        }
+
+        // Verify user is a member of the team
+        $member = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->wpdb->prefix}team_members 
+            WHERE team_id = %d AND user_id = %d AND status = 'active'",
+            $team_id,
+            $user_id
+        ));
+
+        if (!$member) {
+            return new WP_Error('invalid_member', 'User is not a member of this team.');
+        }
+
+        // Don't allow changing role of team owner
+        $team = $this->get_team($team_id);
+        if ($user_id == $team->created_by) {
+            return new WP_Error('invalid_operation', 'Cannot change role of team owner.');
         }
 
         $result = $this->wpdb->update(
@@ -435,7 +457,7 @@ class WizardTeams
         );
 
         if ($result === false) {
-            return new WP_Error('update_failed', 'Failed to update member role: ' . $this->wpdb->last_error);
+            return new WP_Error('update_failed', 'Failed to update member role.');
         }
 
         return true;
@@ -582,11 +604,13 @@ class WizardTeams
     public function get_team_avatar_url($team_id, $size = 96) {
         $team = $this->get_team($team_id);
         if (is_wp_error($team) || !$team->avatar) {
-            return get_avatar_url(0, ['size' => $size]);
+            $url = get_avatar_url(0, ['size' => $size]);
+            return str_replace('http://', 'https://', $url);
         }
 
         $avatar_url = wp_get_attachment_image_url($team->avatar, [$size, $size]);
-        return $avatar_url ? $avatar_url : get_avatar_url(0, ['size' => $size]);
+        $url = $avatar_url ? $avatar_url : get_avatar_url(0, ['size' => $size]);
+        return str_replace('http://', 'https://', $url);
     }
 
     /**

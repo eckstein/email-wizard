@@ -7,6 +7,11 @@ class WizardAvatar
 
     public function __construct($user_id = null)
     {
+        // Suppress deprecated function warnings
+        set_error_handler(function($errno, $errstr) {
+            return strpos($errstr, 'utf8_encode()') !== false;
+        }, E_DEPRECATED);
+        
         $this->user_id = $user_id ? $user_id : get_current_user_id();
         
         // Add filters for avatar handling
@@ -14,6 +19,9 @@ class WizardAvatar
         // Disable Gravatar completely
         add_filter('option_show_avatars', '__return_true');
         add_filter('pre_option_avatar_default', [$this, 'override_default_avatar']);
+
+        // Restore error handler
+        restore_error_handler();
     }
 
     /**
@@ -163,79 +171,102 @@ class WizardAvatar
         return true;
     }
 
-    public function custom_avatar_data($args, $id_or_email)
+    /**
+     * Override the default avatar with our custom fallback
+     * 
+     * @param string $default The default avatar URL
+     * @return string Modified default avatar URL
+     */
+    public function override_default_avatar($default)
     {
-        $user_id = $this->get_user_id_from_identifier($id_or_email);
-        
-        if ($user_id) {
-            $local_avatar_id = get_user_meta($user_id, $this->avatar_meta_key, true);
-            if ($local_avatar_id) {
-                $image_url = wp_get_attachment_image_url($local_avatar_id, 'full');
-                if ($image_url) {
-                    $args['url'] = $image_url;
-                    $args['found_avatar'] = true;
-                }
-            } else {
-                // Use default avatar if no custom avatar is set
-                $default_avatar_id = get_option('wizard_default_avatar');
-                if ($default_avatar_id) {
-                    $image_url = wp_get_attachment_image_url($default_avatar_id, 'full');
-                    if ($image_url) {
-                        $args['url'] = $image_url;
-                        $args['found_avatar'] = true;
-                    }
-                }
+        $fallback_id = get_option('wizard_default_avatar');
+        if ($fallback_id) {
+            $fallback_url = wp_get_attachment_url($fallback_id);
+            if ($fallback_url) {
+                return $fallback_url;
             }
         }
-        
-        // Force disable Gravatar
-        $args['url'] = $args['url'] ?? $this->get_default_avatar_url();
-        $args['found_avatar'] = true;
-        
+        // Return WordPress default if no custom fallback is set
+        return $default;
+    }
+
+    /**
+     * Filter the avatar data before displaying
+     * 
+     * @param array $args Avatar arguments
+     * @param mixed $id_or_email User ID or email
+     * @return array Modified avatar arguments
+     */
+    public function custom_avatar_data($args, $id_or_email)
+    {
+        // Get user ID from email if necessary
+        if (is_string($id_or_email) && is_email($id_or_email)) {
+            $user = get_user_by('email', $id_or_email);
+            $user_id = $user ? $user->ID : null;
+        } elseif (is_numeric($id_or_email)) {
+            $user_id = $id_or_email;
+        } elseif (is_object($id_or_email) && isset($id_or_email->user_id)) {
+            $user_id = $id_or_email->user_id;
+        } else {
+            $user_id = null;
+        }
+
+        // If no valid user found, return default avatar
+        if (!$user_id) {
+            $args['url'] = $this->override_default_avatar($args['default']);
+            return $args;
+        }
+
+        // Get custom avatar
+        $custom_avatar_id = get_user_meta($user_id, $this->avatar_meta_key, true);
+        if ($custom_avatar_id) {
+            $avatar_url = wp_get_attachment_url($custom_avatar_id);
+            if ($avatar_url) {
+                $args['url'] = $avatar_url;
+                return $args;
+            }
+        }
+
+        // Use custom default avatar if no custom avatar is set
+        $args['url'] = $this->override_default_avatar($args['default']);
         return $args;
     }
 
-    public function override_default_avatar()
+    /**
+     * Check if user has a custom avatar
+     * 
+     * @return boolean True if user has custom avatar
+     */
+    public function has_custom_avatar()
     {
-        return 'custom';
+        $avatar_id = get_user_meta($this->user_id, $this->avatar_meta_key, true);
+        return !empty($avatar_id);
     }
 
-    private function get_default_avatar_url()
+    /**
+     * Get avatar URL for the user
+     * 
+     * @param int $size Avatar size in pixels
+     * @return string Avatar URL
+     */
+    public function get_avatar_url($size = 96)
     {
-        $default_avatar_id = get_option('wizard_default_avatar');
-        if ($default_avatar_id) {
-            return wp_get_attachment_image_url($default_avatar_id, 'full');
-        }
-        // Fallback to WordPress default
-        return includes_url('images/blank.gif');
+        $avatar_data = $this->custom_avatar_data(
+            ['size' => $size, 'default' => get_option('avatar_default', 'mystery')],
+            $this->user_id
+        );
+        return $avatar_data['url'];
     }
 
-    private function get_user_id_from_identifier($id_or_email)
-    {
-        if (is_numeric($id_or_email)) {
-            return (int) $id_or_email;
-        } elseif (is_object($id_or_email) && !empty($id_or_email->user_id)) {
-            return (int) $id_or_email->user_id;
-        } elseif (is_string($id_or_email)) {
-            $user = get_user_by('email', $id_or_email);
-            return $user ? $user->ID : 0;
-        }
-        return 0;
-    }
-
+    /**
+     * Get avatar HTML for the user
+     * 
+     * @param int $size Avatar size in pixels
+     * @return string Avatar HTML
+     */
     public function get_avatar($size = 96)
     {
         return get_avatar($this->user_id, $size);
-    }
-
-    public function get_avatar_url($size = 96)
-    {
-        return get_avatar_url($this->user_id, ['size' => $size]);
-    }
-
-    public function has_custom_avatar()
-    {
-        return (bool) get_user_meta($this->user_id, $this->avatar_meta_key, true);
     }
 }
 

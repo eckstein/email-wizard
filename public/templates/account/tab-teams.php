@@ -154,114 +154,41 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                 <?php foreach ($userTeams as $team): ?>
                     <div class="wizard-team-card <?php echo ($team->id == $currentTeam) ? 'active' : ''; ?>">
                         <div class="wizard-team-card-content">
-                            <?php if ($team->id == $currentTeam && $team->role === 'admin'): ?>
-                                <form method="post" class="team-edit-form" enctype="multipart/form-data">
-                                    <?php wp_nonce_field('wizard_update_team_settings', 'wizard_update_team_settings_nonce'); ?>
-                                    <input type="hidden" name="wizard_form_action" value="update_team_settings">
-                                    <input type="hidden" name="team_id" value="<?php echo esc_attr($team->id); ?>">
-                                    <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
-                                    
-                                    <div class="wizard-team-avatar">
-                                        <div class="current-avatar" id="team-avatar-<?php echo $team->id; ?>-container">
-                                            <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
-                                        </div>
-                                        <div class="avatar-controls">
-                                            <label for="team-avatar-<?php echo $team->id; ?>" class="wizard-button button-secondary">
-                                                <i class="fa-solid fa-upload"></i>&nbsp;&nbsp;Upload new
-                                                <input type="file" 
-                                                    name="team_avatar" 
-                                                    id="team-avatar-<?php echo $team->id; ?>" 
-                                                    data-team-id="<?php echo esc_attr($team->id); ?>"
-                                                    accept="image/jpeg,image/png,image/gif"
-                                                    data-max-size="5242880">
-                                            </label>
-                                            <?php if ($teamsManager->has_team_avatar($team->id)): ?>
-                                                <button type="submit" 
-                                                    name="delete_team_avatar" 
-                                                    value="1"
-                                                    data-team-id="<?php echo esc_attr($team->id); ?>"
-                                                    class="wizard-button small red button-text delete-team-avatar"
-                                                    title="Remove team avatar">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            <?php endif; ?>
-                                            <p class="field-description">Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF.</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="wizard-team-info">
-                                        <div class="wizard-team-card-header">
-                                            <input type="text" 
-                                                name="team_name" 
-                                                class="team-name-input" 
-                                                value="<?php echo esc_attr($team->name); ?>"
-                                                required>
-                                            <span class="wizard-team-role <?php echo $team->role; ?>">
-                                                <?php echo ucfirst($team->role); ?>
-                                            </span>
-                                        </div>
-
-                                        <div class="wizard-form-fieldgroup">
-                                            <div class="wizard-form-fieldgroup-label">Description</div>
-                                            <div class="wizard-form-fieldgroup-value">
-                                                <div class="textarea-wrapper">
-                                                    <textarea name="team_description" 
-                                                        class="team-description-input" 
-                                                        maxlength="500"
-                                                        placeholder="Add a team description..."><?php echo esc_textarea($team->description); ?></textarea>
-                                                    <div class="char-count"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="team-edit-actions">
-                                            <button type="submit" class="wizard-button small">
-                                                <i class="fa-solid fa-save"></i>&nbsp;&nbsp;Save Changes
-                                            </button>
-                                            <a href="<?php echo add_query_arg('manage_members', '1', remove_query_arg('team_switched')); ?>" 
-                                               class="wizard-button small button-text">
-                                                <i class="fa-solid fa-users"></i>&nbsp;&nbsp;Manage Members
-                                            </a>
-                                        </div>
-
-                                        <div class="wizard-team-actions">
-                                            <span class="current-team-badge">
-                                                <i class="fa-solid fa-check"></i>&nbsp;&nbsp;Current Team
-                                            </span>
-                                        </div>
-                                    </div>
-                                </form>
-                            <?php else: ?>
-                                <div class="wizard-team-avatar">
-                                    <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                            <div class="wizard-team-avatar">
+                                <?php echo $teamsManager->get_team_avatar($team->id, 64); ?>
+                            </div>
+                            
+                            <div class="wizard-team-info">
+                                <div class="wizard-team-card-header">
+                                    <h3 class="wizard-team-name"><?php echo esc_html($team->name); ?></h3>
+                                    <span class="wizard-team-role <?php echo $team->role; ?>">
+                                        <?php echo ucfirst($team->role); ?>
+                                    </span>
                                 </div>
-                                
-                                <div class="wizard-team-info">
-                                    <div class="wizard-team-card-header">
-                                        <h3 class="wizard-team-name"><?php echo esc_html($team->name); ?></h3>
-                                        <span class="wizard-team-role <?php echo $team->role; ?>">
-                                            <?php echo ucfirst($team->role); ?>
+
+                                <?php if (!empty($team->description)): ?>
+                                    <p class="wizard-team-description"><?php echo esc_html($team->description); ?></p>
+                                <?php endif; ?>
+
+                                <div class="wizard-team-actions">
+                                    <?php if ($team->id == $currentTeam): ?>
+                                        <span class="current-team-badge">
+                                            <i class="fa-solid fa-check"></i>&nbsp;&nbsp;Current Team
                                         </span>
-                                    </div>
-
-                                    <?php if (!empty($team->description)): ?>
-                                        <p class="wizard-team-description"><?php echo esc_html($team->description); ?></p>
-                                    <?php endif; ?>
-
-                                    <div class="wizard-team-actions">
-                                        <?php if ($team->id != $currentTeam): ?>
-                                            <button type="button" class="wizard-button small button-secondary switch-team-trigger"
+                                        <?php if ($team->role === 'admin'): ?>
+                                            <button type="button" class="wizard-button small button-text edit-team-trigger"
                                                 data-team-id="<?php echo esc_attr($team->id); ?>">
-                                                <i class="fa-solid fa-shuffle"></i>&nbsp;&nbsp;Switch to Team
+                                                <i class="fa-solid fa-gear"></i>&nbsp;&nbsp;Team Settings
                                             </button>
-                                        <?php else: ?>
-                                            <span class="current-team-badge">
-                                                <i class="fa-solid fa-check"></i>&nbsp;&nbsp;Current Team
-                                            </span>
                                         <?php endif; ?>
-                                    </div>
+                                    <?php else: ?>
+                                        <button type="button" class="wizard-button small button-secondary switch-team-trigger"
+                                            data-team-id="<?php echo esc_attr($team->id); ?>">
+                                            <i class="fa-solid fa-shuffle"></i>&nbsp;&nbsp;Switch to Team
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>

@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { showSuccessToast } from "../notification-utils";
 import { removeUrlParameter } from "../http-utils";
 
-export { wizToast, checkUrlParamsForToasts };
+export { Swal, wizToast, checkUrlParamsForToasts };
 
 function wizToast(args) {
 	if (!args.text && !args.html) {

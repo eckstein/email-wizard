@@ -37,7 +37,7 @@ async function uploadAvatar(formData) {
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.data || 'Upload failed');
+            throw new Error(data.data?.message || 'Upload failed');
         }
 
         showSuccessToast(data.data.message);
@@ -45,6 +45,17 @@ async function uploadAvatar(formData) {
     } catch (error) {
         showErrorToast(error.message);
         throw error;
+    }
+}
+
+/**
+ * Update avatar preview
+ * @param {HTMLElement} container - The container element
+ * @param {string} html - The new avatar HTML
+ */
+function updateAvatarPreview(container, html) {
+    if (container && html) {
+        container.innerHTML = html;
     }
 }
 
@@ -68,15 +79,18 @@ export function initAvatarHandlers({
             if (!file || !validateFile(file)) return;
 
             const formData = new FormData();
-            formData.append('action', 'update_user_avatar');
+            formData.append('action', 'wiz_ajax_update_user_avatar');
             formData.append('avatar', file);
             formData.append('nonce', nonce);
             formData.append('user_id', wizard.current_user_id);
 
             try {
                 const data = await uploadAvatar(formData);
-                if (data.avatar_html && userAvatarContainer) {
-                    userAvatarContainer.innerHTML = data.avatar_html;
+                if (data.avatar_html) {
+                    updateAvatarPreview(userAvatarContainer, data.avatar_html);
+                    if (deleteUserAvatarBtn) {
+                        deleteUserAvatarBtn.disabled = false;
+                    }
                 }
             } catch (error) {
                 console.error('Avatar upload failed:', error);
@@ -90,16 +104,16 @@ export function initAvatarHandlers({
             e.preventDefault();
 
             const formData = new FormData();
-            formData.append('action', 'delete_user_avatar');
+            formData.append('action', 'wiz_ajax_delete_user_avatar');
             formData.append('nonce', nonce);
             formData.append('user_id', wizard.current_user_id);
 
             try {
                 const data = await uploadAvatar(formData);
-                if (data.avatar_html && userAvatarContainer) {
-                    userAvatarContainer.innerHTML = data.avatar_html;
+                if (data.avatar_html) {
+                    updateAvatarPreview(userAvatarContainer, data.avatar_html);
+                    deleteUserAvatarBtn.disabled = true;
                 }
-                deleteUserAvatarBtn.disabled = true;
             } catch (error) {
                 console.error('Avatar deletion failed:', error);
             }
@@ -119,12 +133,18 @@ export function initAvatarHandlers({
                 formData.append('team_avatar', file);
                 formData.append('team_id', teamId);
                 formData.append('nonce', nonce);
-                formData.append('user_id', wizard.current_user_id);
 
                 try {
                     const data = await uploadAvatar(formData);
-                    if (data.avatar_html && teamAvatarContainers[index]) {
-                        teamAvatarContainers[index].innerHTML = data.avatar_html;
+                    if (data.avatar_html) {
+                        const container = document.querySelector(`#team-avatar-${teamId}-container`);
+                        updateAvatarPreview(container, data.avatar_html);
+                        
+                        // Enable delete button if it exists
+                        const deleteBtn = document.querySelector(`.delete-team-avatar[data-team-id="${teamId}"]`);
+                        if (deleteBtn) {
+                            deleteBtn.style.display = 'inline-flex';
+                        }
                     }
                 } catch (error) {
                     console.error('Team avatar upload failed:', error);
@@ -135,7 +155,7 @@ export function initAvatarHandlers({
 
     // Handle team avatar deletions
     if (deleteTeamAvatarBtns) {
-        deleteTeamAvatarBtns.forEach((btn, index) => {
+        deleteTeamAvatarBtns.forEach((btn) => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
 
@@ -144,14 +164,14 @@ export function initAvatarHandlers({
                 formData.append('action', 'delete_team_avatar');
                 formData.append('team_id', teamId);
                 formData.append('nonce', nonce);
-                formData.append('user_id', wizard.current_user_id);
 
                 try {
                     const data = await uploadAvatar(formData);
-                    if (data.avatar_html && teamAvatarContainers[index]) {
-                        teamAvatarContainers[index].innerHTML = data.avatar_html;
+                    if (data.avatar_html) {
+                        const container = document.querySelector(`#team-avatar-${teamId}-container`);
+                        updateAvatarPreview(container, data.avatar_html);
+                        btn.style.display = 'none';
                     }
-                    btn.style.display = 'none';
                 } catch (error) {
                     console.error('Team avatar deletion failed:', error);
                 }

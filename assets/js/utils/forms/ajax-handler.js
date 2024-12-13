@@ -128,15 +128,6 @@ export function handleFileUpload(input, options) {
         const file = this.files[0];
         const preview = document.querySelector(options.previewSelector);
 
-        // Show preview if it's an image
-        if (file.type.startsWith('image/') && preview) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -152,6 +143,13 @@ export function handleFileUpload(input, options) {
 
             if (!data.success) {
                 throw new Error(data.data || 'Upload failed');
+            }
+
+            // Update preview with returned HTML if available
+            if (data.data?.avatar_html && preview?.parentElement) {
+                preview.parentElement.innerHTML = data.data.avatar_html;
+            } else if (data.data?.avatar_url && preview) {
+                preview.src = data.data.avatar_url;
             }
 
             wizToast({

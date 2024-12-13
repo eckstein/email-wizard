@@ -1,5 +1,6 @@
 import { handleAjaxForm, handleFileUpload } from '../../utils/forms/ajax-handler';
 import { wizToast } from '../../utils/ui/swal2';
+import Swal from 'sweetalert2';
 
 /**
  * Initialize account settings functionality

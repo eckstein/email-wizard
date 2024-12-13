@@ -20,6 +20,9 @@
 @import "./components/_forms.css";
 @import "./components/_tabs.css";
 @import "./components/_slideover.css";
+@import "./components/_modal.css";
+@import "./components/_teams.css";
+@import "./components/_login.css";
 
 /* Layout Styles */
 @import "./layouts/_header.css";
