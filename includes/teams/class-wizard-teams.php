@@ -728,8 +728,6 @@ class WizardTeams
      * @return bool|WP_Error True on success, WP_Error on failure
      */
     public function revoke_team_invite($invite_id) {
-        error_log('Attempting to revoke invite: ' . $invite_id);
-        
         // First verify the invite exists
         $invite = $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT * FROM {$this->wpdb->prefix}team_invites WHERE id = %d",
@@ -737,11 +735,8 @@ class WizardTeams
         ));
 
         if (!$invite) {
-            error_log('Invite not found: ' . $invite_id);
             return new WP_Error('invalid_invite', 'Invite not found.');
         }
-
-        error_log('Found invite, current status: ' . $invite->status);
 
         $result = $this->wpdb->update(
             $this->wpdb->prefix . 'team_invites',
@@ -751,9 +746,7 @@ class WizardTeams
             array('%d')
         );
 
-        error_log('Update result: ' . ($result === false ? 'failed' : 'success'));
         if ($result === false) {
-            error_log('MySQL error: ' . $this->wpdb->last_error);
             return new WP_Error('revoke_failed', 'Failed to revoke invitation: ' . $this->wpdb->last_error);
         }
 

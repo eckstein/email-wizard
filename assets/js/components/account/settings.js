@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
  * Initialize account settings functionality
  */
 export function initAccountSettings() {
-    const accountForm = document.querySelector('.avatar-form');
+    const accountForm = document.querySelector('.account-settings-form');
     if (!accountForm) return;
 
     // Handle main account form submission

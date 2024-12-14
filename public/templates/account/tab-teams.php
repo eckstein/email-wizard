@@ -39,9 +39,8 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                             
                             <?php if ($member->ID !== get_current_user_id()): ?>
                                 <div class="member-actions">
-                                    <form method="post" class="member-role-form">
+                                    <form class="member-role-form">
                                         <?php wp_nonce_field('wizard_update_member_role', 'wizard_update_member_role_nonce'); ?>
-                                        <input type="hidden" name="wizard_form_action" value="update_member_role">
                                         <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                                         <input type="hidden" name="user_id" value="<?php echo esc_attr($member->ID); ?>">
                                         
@@ -53,9 +52,8 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                         <button type="submit" class="wizard-button small">Update Role</button>
                                     </form>
 
-                                    <form method="post" class="member-remove-form">
+                                    <form class="member-remove-form">
                                         <?php wp_nonce_field('wizard_remove_team_member', 'wizard_remove_team_member_nonce'); ?>
-                                        <input type="hidden" name="wizard_form_action" value="remove_team_member">
                                         <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                                         <input type="hidden" name="user_id" value="<?php echo esc_attr($member->ID); ?>">
                                         
@@ -87,9 +85,8 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                             </div>
                             
                             <div class="member-actions">
-                                <form method="post" class="resend-invite-form">
+                                <form class="resend-invite-form">
                                     <?php wp_nonce_field('wizard_resend_invite', 'wizard_resend_invite_nonce'); ?>
-                                    <input type="hidden" name="wizard_form_action" value="resend_team_invite">
                                     <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                                     <input type="hidden" name="invite_id" value="<?php echo esc_attr($invite->id); ?>">
                                     
@@ -98,9 +95,8 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
                                     </button>
                                 </form>
 
-                                <form method="post" class="revoke-invite-form">
+                                <form class="revoke-invite-form">
                                     <?php wp_nonce_field('wizard_revoke_team_invite', 'wizard_revoke_team_invite_nonce'); ?>
-                                    <input type="hidden" name="wizard_form_action" value="revoke_team_invite">
                                     <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                                     <input type="hidden" name="invite_id" value="<?php echo esc_attr($invite->id); ?>">
                                     
@@ -118,9 +114,8 @@ include(plugin_dir_path(dirname(dirname(__FILE__))) . 'templates/account/partial
 
             <div class="invite-member-section">
                 <h3>Invite New Member</h3>
-                <form method="post" class="invite-member-form wizard-form">
+                <form class="invite-member-form wizard-form">
                     <?php wp_nonce_field('wizard_invite_team_member', 'wizard_invite_team_member_nonce'); ?>
-                    <input type="hidden" name="wizard_form_action" value="invite_team_member">
                     <input type="hidden" name="team_id" value="<?php echo esc_attr($currentTeam); ?>">
                     
                     <div class="wizard-form-fieldgroup">

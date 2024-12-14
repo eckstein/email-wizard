@@ -32,6 +32,9 @@
     transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform, opacity;
     backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
 .wiz-modal.open .wiz-modal-content {
@@ -45,6 +48,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .wiz-modal-title {
@@ -72,7 +76,7 @@
 .wiz-modal-body {
     padding: 1.5rem;
     overflow-y: auto;
-    max-height: calc(90vh - 4rem); /* Account for header */
+    flex: 1;
 }
 
 /* Custom scrollbar for modal body */
@@ -94,7 +98,18 @@
     background: #a1a1a1;
 }
 
-/* Modal Actions */
+/* Modal Footer */
+.wiz-modal-footer {
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Modal Actions - keeping for backward compatibility */
 .wiz-modal-actions {
     padding: 1rem 1.5rem;
     background: #f9fafb;
@@ -102,4 +117,5 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+    flex-shrink: 0;
 } 

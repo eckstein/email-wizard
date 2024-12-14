@@ -12,8 +12,7 @@ if (isset($_SESSION['wizard_account_messages'])) {
 ?>
 
 <div class="wizard-form-content">
-    <form method="post" enctype="multipart/form-data" class="avatar-form">
-        <input type="hidden" name="wizard_form_action" value="update_account">
+    <form class="wizard-form account-settings-form">
         <?php wp_nonce_field('wizard_update_account', 'wizard_update_account_nonce'); ?>
         <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
 

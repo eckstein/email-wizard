@@ -13,9 +13,8 @@ if (!$team) return;
 $teamsManager = new WizardTeams();
 ?>
 
-<form method="post" class="team-edit-form" enctype="multipart/form-data">
+<form id="team-settings-form" class="team-edit-form" enctype="multipart/form-data">
     <?php wp_nonce_field('wizard_update_team_settings', 'wizard_update_team_settings_nonce'); ?>
-    <input type="hidden" name="wizard_form_action" value="update_team_settings">
     <input type="hidden" name="team_id" value="<?php echo esc_attr($team->id); ?>">
     <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
 
@@ -108,12 +107,11 @@ $teamsManager = new WizardTeams();
                                     <button type="button" 
                                         class="wizard-button small red button-text remove-member-trigger"
                                         data-member-id="<?php echo esc_attr($member->ID); ?>"
-                                        data-member-name="<?php echo esc_attr($member->display_name); ?>">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                        data-member-name="<?php echo esc_attr($member->display_name); ?>"
+                                        title="Remove member">
+                                        <i class="fa-solid fa-user-minus"></i>
                                     </button>
                                 </div>
-                            <?php else: ?>
-                                <span class="member-role admin">Team Owner</span>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -126,22 +124,21 @@ $teamsManager = new WizardTeams();
                                 </div>
                                 <div class="member-details">
                                     <span class="member-email"><?php echo esc_html($invite->email); ?></span>
-                                    <span class="member-status pending">Pending Invite</span>
-                                    <span class="member-invite-expires">Expires: <?php echo human_time_diff(strtotime($invite->expires_at)); ?></span>
+                                    <span class="member-status">Invitation pending</span>
                                 </div>
                             </div>
-                            
                             <div class="member-actions">
                                 <button type="button" 
-                                    class="wizard-button small resend-invite-trigger"
-                                    data-invite-id="<?php echo esc_attr($invite->id); ?>">
-                                    <i class="fa-solid fa-paper-plane"></i>&nbsp;&nbsp;Resend
+                                    class="wizard-button small button-text resend-invite-trigger"
+                                    data-invite-id="<?php echo esc_attr($invite->id); ?>"
+                                    title="Resend invitation">
+                                    <i class="fa-solid fa-paper-plane"></i>
                                 </button>
-
                                 <button type="button" 
                                     class="wizard-button small red button-text revoke-invite-trigger"
-                                    data-invite-id="<?php echo esc_attr($invite->id); ?>">
-                                    <i class="fa-solid fa-xmark"></i>&nbsp;&nbsp;Revoke
+                                    data-invite-id="<?php echo esc_attr($invite->id); ?>"
+                                    title="Revoke invitation">
+                                    <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         </div>
@@ -165,11 +162,5 @@ $teamsManager = new WizardTeams();
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="wizard-form-actions">
-        <button type="submit" class="wizard-button button-primary">
-            <i class="fa-solid fa-save"></i>&nbsp;&nbsp;Save Changes
-        </button>
     </div>
 </form> 

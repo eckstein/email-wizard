@@ -67,6 +67,9 @@ const handleTeamSettings = async (teamId) => {
             content: result.data.html,
             width: '800px',
             className: 'team-settings-modal',
+            footer: `<button type="submit" form="team-settings-form" class="wizard-button button-primary">
+                <i class="fa-solid fa-save"></i>&nbsp;&nbsp;Save Changes
+            </button>`,
             onClose: () => {
                 // Reset button state when modal is closed
                 if (button) {

@@ -18,6 +18,7 @@ export class WizModal {
             showClose: true,
             className: '',
             onClose: null,
+            footer: null,
             ...options
         };
 
@@ -75,6 +76,18 @@ export class WizModal {
             contentContainer.appendChild(this.options.content);
         }
         modalContent.appendChild(contentContainer);
+
+        // Add footer if provided
+        if (this.options.footer) {
+            const footerContainer = document.createElement('div');
+            footerContainer.className = 'wiz-modal-footer';
+            if (typeof this.options.footer === 'string') {
+                footerContainer.innerHTML = this.options.footer;
+            } else if (this.options.footer instanceof Node) {
+                footerContainer.appendChild(this.options.footer);
+            }
+            modalContent.appendChild(footerContainer);
+        }
 
         // Add to modal
         this.element.appendChild(modalContent);
