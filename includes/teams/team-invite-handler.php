@@ -5,17 +5,45 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Handle team invitation links
+ * Allow + character in usernames for email addresses
  */
-function wizard_handle_team_invite() {
-    if (!isset($_GET['action']) || $_GET['action'] !== 'accept_team_invite' || !isset($_GET['token'])) {
-        return;
+function wizard_allow_email_usernames($username, $raw_username, $strict) {
+    // Only modify if it looks like an email address
+    if (strpos($raw_username, '@') !== false) {
+        // Add back the + character that WordPress removed
+        // First get the local part of the email (before @)
+        $parts = explode('@', $raw_username);
+        $local = $parts[0];
+        $domain = $parts[1];
+        
+        // Reconstruct the username/email with + preserved
+        if (strpos($local, '+') !== false) {
+            $username = $local . '@' . $domain;
+        }
     }
+    return $username;
+}
+add_filter('sanitize_user', 'wizard_allow_email_usernames', 10, 3);
 
-    $token = sanitize_text_field($_GET['token']);
-    
-    // Get the invitation
+/**
+ * Modify WordPress's username sanitization rules to allow + in usernames
+ */
+function wizard_modify_username_rules($username_rules) {
+    // Only modify if we're processing a registration
+    if (!empty($_POST['invite_token'])) {
+        // Add + to the allowed characters
+        return $username_rules . '+';
+    }
+    return $username_rules;
+}
+add_filter('sanitize_user_regexp', 'wizard_modify_username_rules', 10, 1);
+
+/**
+ * Validate team invitation token
+ */
+function wizard_validate_invite($token) {
     global $wpdb;
+    
     $invite = $wpdb->get_row($wpdb->prepare(
         "SELECT * FROM {$wpdb->prefix}team_invites 
         WHERE token = %s 
@@ -24,11 +52,21 @@ function wizard_handle_team_invite() {
         $token
     ));
 
-    if (!$invite) {
-        wp_die(__('This invitation is invalid or has expired.', 'wizard'));
+    return $invite;
+}
+
+/**
+ * Handle team invitation links
+ */
+function wizard_handle_team_invite() {
+    if (!isset($_GET['action']) || $_GET['action'] !== 'accept_team_invite' || !isset($_GET['token'])) {
+        return;
     }
 
-    // Check if user is logged in
+    $token = sanitize_text_field($_GET['token']);
+    $invite = wizard_validate_invite($token);
+
+    // For registration and login redirects, we'll validate the token again later
     if (!is_user_logged_in()) {
         // Check if a user with this email exists
         $existing_user = get_user_by('email', $invite->email);
@@ -43,11 +81,16 @@ function wizard_handle_team_invite() {
         } else {
             // Redirect to our registration page
             wp_redirect(add_query_arg([
-                'invite_email' => urlencode($invite->email),
+                'invite_email' => rawurlencode($invite->email),
                 'token' => $token
             ], home_url('/register/')));
             exit;
         }
+    }
+
+    // For actual invite acceptance, validate strictly
+    if (!$invite) {
+        wp_die(__('This invitation is invalid or has expired.', 'wizard'));
     }
 
     // User is logged in, verify email matches
@@ -80,6 +123,19 @@ function wizard_handle_invite_after_registration($user_id) {
     }
 
     $token = sanitize_text_field($_POST['invite_token']);
+    
+    // Validate the invite
+    $invite = wizard_validate_invite($token);
+    if (!$invite) {
+        return;
+    }
+
+    // Verify the email matches
+    $user = get_user_by('ID', $user_id);
+    if ($user->user_email !== $invite->email) {
+        return;
+    }
+
     $teams = new WizardTeams();
     $teams->accept_team_invite($token, $user_id);
 }

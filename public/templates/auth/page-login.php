@@ -6,49 +6,45 @@
 
 get_header();
 
-// Get any error messages
 $error = isset($_GET['login']) ? $_GET['login'] : '';
 $redirect = isset($_GET['redirect_to']) ? $_GET['redirect_to'] : home_url();
-
-$args = array(
-    'redirect' => $redirect,
-    'form_id' => 'loginform',
-    'label_username' => 'Email',
-    'label_password' => 'Password',
-    'label_remember' => 'Remember Me',
-    'label_log_in' => 'Log In',
-    'remember' => false,
-    'value_remember' => true
-);
 ?>
 
-<div id="primary" class="content-area">
-    <main id="main" class="site-main">
-        <div class="login-page">
-            <div class="wizard-form-content">
-                <div class="login-header-container">
-                    <?php
-                    $site_logo = get_theme_mod('emailwizard_site_logo') ?? '';
-                    ?>
-                    <?php if ($site_logo): ?>
-                        <img src="<?php echo esc_url($site_logo); ?>" alt="Email Wizard Logo" class="login-logo">
-                    <?php endif; ?>
+<div class="wizard-auth-container">
+    <div class="wizard-auth-box">
+        <h2><?php _e('Log In', 'wizard'); ?></h2>
 
-                    <h3 class="wizard-form-section-title">Login to Your Account</h3>
-                </div>
-
-                <?php if ($error === 'failed'): ?>
-                    <div class="wizard-message error">
-                        <p>Invalid username or password. Please try again.</p>
-                    </div>
-                <?php endif; ?>
-
-                <?php wp_login_form($args); ?>
-
-                <a href="<?php echo esc_url(wp_lostpassword_url()); ?>" class="lost-password-link">Lost your password?</a>
+        <?php if ($error === 'failed'): ?>
+            <div class="message-box error">
+                <?php _e('Invalid email or password. Please try again.', 'wizard'); ?>
             </div>
-        </div>
-    </main>
+        <?php endif; ?>
+
+        <form name="loginform" id="loginform" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')); ?>" method="post">
+            <p>
+                <label for="user_login"><?php _e('Email Address', 'wizard'); ?></label>
+                <input type="text" name="log" id="user_login" class="input" required />
+            </p>
+
+            <p>
+                <label for="user_pass"><?php _e('Password', 'wizard'); ?></label>
+                <input type="password" name="pwd" id="user_pass" class="input" required />
+            </p>
+
+            <input type="hidden" name="redirect_to" value="<?php echo esc_url($redirect); ?>" />
+
+            <p class="submit">
+                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="<?php esc_attr_e('Log In', 'wizard'); ?>" />
+            </p>
+        </form>
+
+        <p class="login-link">
+            <?php printf(
+                __('Forgot your password? %s', 'wizard'),
+                '<a href="' . esc_url(home_url('/reset-password/')) . '">' . __('Reset it here', 'wizard') . '</a>'
+            ); ?>
+        </p>
+    </div>
 </div>
 
 <?php get_footer(); ?>

@@ -1,7 +1,7 @@
 <?php
 get_header();
 
-$invite_email = isset($_GET['invite_email']) ? urldecode($_GET['invite_email']) : '';
+$invite_email = isset($_GET['invite_email']) ? rawurldecode($_GET['invite_email']) : '';
 $token = isset($_GET['token']) ? $_GET['token'] : '';
 
 // If this is an invite, use the invite template instead

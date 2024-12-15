@@ -105,23 +105,28 @@ input[type="submit"].button-primary {
 }
 
 /* Messages */
-.invite-message {
-    background-color: #e8f5e9;
-    border-left: 4px solid #4caf50;
-    padding: 12px;
-    margin-bottom: 20px;
-    color: #2e7d32;
+.message-box {
+    padding: 16px;
+    margin-bottom: 24px;
+    border-radius: 4px;
     font-size: 14px;
     line-height: 1.5;
 }
 
-/* Error messages */
-.error-message {
+.message-box.success {
+    background-color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    color: #2e7d32;
+}
+
+.message-box.error {
     background-color: #fde8e8;
     border-left: 4px solid #e53e3e;
-    padding: 12px;
-    margin-bottom: 20px;
     color: #c53030;
-    font-size: 14px;
-    line-height: 1.5;
+}
+
+.message-box .sub-message {
+    margin-top: 8px;
+    font-size: 13px;
+    opacity: 0.9;
 } 
