@@ -195,3 +195,129 @@ function handle_get_team_settings_ajax() {
 
     wp_send_json_success(['html' => $modal_content]);
 }
+
+add_action('wiz_ajax_invite_team_member', 'handle_invite_team_member_ajax');
+function handle_invite_team_member_ajax() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'Not authorized']);
+    }
+
+    $team_id = isset($_POST['team_id']) ? intval($_POST['team_id']) : 0;
+    $email = isset($_POST['member_email']) ? sanitize_email($_POST['member_email']) : '';
+
+    if (!$team_id || !$email) {
+        wp_send_json_error(['message' => 'Missing required fields']);
+    }
+
+    // Verify nonce with the team being updated
+    if (!check_ajax_referer('wizard_security_'.$team_id, 'nonce', false)) {
+        wp_send_json_error(['message' => 'Invalid security token. Active team may have been switched in another tab.']);
+    }
+
+    $teams = new WizardTeams();
+
+    // Check if user has permission to invite
+    if (!$teams->is_team_admin($team_id, $user_id)) {
+        wp_send_json_error(['message' => 'You do not have permission to invite members to this team']);
+    }
+
+    // Create the invitation
+    $result = $teams->create_team_invite($team_id, $email, $user_id);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf('Invitation sent to %s successfully.', $email)
+    ]);
+}
+
+add_action('wiz_ajax_revoke_team_invite', 'handle_revoke_team_invite_ajax');
+function handle_revoke_team_invite_ajax() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'Not authorized']);
+    }
+
+    $team_id = isset($_POST['team_id']) ? intval($_POST['team_id']) : 0;
+    $invite_id = isset($_POST['invite_id']) ? intval($_POST['invite_id']) : 0;
+
+    if (!$team_id || !$invite_id) {
+        wp_send_json_error(['message' => 'Missing required fields']);
+    }
+
+    // Verify nonce with the team being updated
+    if (!check_ajax_referer('wizard_security_'.$team_id, 'nonce', false)) {
+        wp_send_json_error(['message' => 'Invalid security token. Active team may have been switched in another tab.']);
+    }
+
+    $teams = new WizardTeams();
+
+    // Check if user has permission
+    if (!$teams->is_team_admin($team_id, $user_id)) {
+        wp_send_json_error(['message' => 'You do not have permission to revoke invitations for this team']);
+    }
+
+    // Revoke the invitation
+    $result = $teams->revoke_team_invite($invite_id);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()]);
+    }
+
+    wp_send_json_success([
+        'message' => 'Invitation revoked successfully'
+    ]);
+}
+
+add_action('wiz_ajax_resend_team_invite', 'handle_resend_team_invite_ajax');
+function handle_resend_team_invite_ajax() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'Not authorized']);
+    }
+
+    $team_id = isset($_POST['team_id']) ? intval($_POST['team_id']) : 0;
+    $invite_id = isset($_POST['invite_id']) ? intval($_POST['invite_id']) : 0;
+
+    if (!$team_id || !$invite_id) {
+        wp_send_json_error(['message' => 'Missing required fields']);
+    }
+
+    // Verify nonce with the team being updated
+    if (!check_ajax_referer('wizard_security_'.$team_id, 'nonce', false)) {
+        wp_send_json_error(['message' => 'Invalid security token. Active team may have been switched in another tab.']);
+    }
+
+    $teams = new WizardTeams();
+
+    // Check if user has permission
+    if (!$teams->is_team_admin($team_id, $user_id)) {
+        wp_send_json_error(['message' => 'You do not have permission to resend invitations for this team']);
+    }
+
+    // Get the invite details
+    global $wpdb;
+    $invite = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}team_invites WHERE id = %d AND team_id = %d",
+        $invite_id,
+        $team_id
+    ));
+
+    if (!$invite) {
+        wp_send_json_error(['message' => 'Invitation not found']);
+    }
+
+    // Create a new invitation (this will update the existing one)
+    $result = $teams->create_team_invite($team_id, $invite->email, $user_id, $invite->role);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf('Invitation resent to %s successfully.', $invite->email)
+    ]);
+}

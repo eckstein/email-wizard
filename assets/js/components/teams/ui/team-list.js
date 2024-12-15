@@ -367,7 +367,7 @@ const initMemberManagement = (modal, teamId) => {
                     body: new URLSearchParams({
                         action: 'invite_team_member',
                         team_id: teamId,
-                        email: email,
+                        member_email: email,
                         nonce: wizard.nonce
                     })
                 });
@@ -379,8 +379,27 @@ const initMemberManagement = (modal, teamId) => {
                         text: 'Invitation sent successfully',
                         icon: 'success'
                     });
-                    // Reload to show new invite
-                    window.location.reload();
+                    
+                    // Refresh the modal content instead of reloading the page
+                    const modalResponse = await fetch(wizard.ajaxurl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            action: 'load_team_settings',
+                            team_id: teamId,
+                            nonce: wizard.nonce
+                        })
+                    });
+
+                    const modalResult = await modalResponse.json();
+                    if (modalResult.success) {
+                        const modalContent = modal.querySelector('.wizard-modal-content');
+                        modalContent.innerHTML = modalResult.data.html;
+                        // Reinitialize event handlers for the new content
+                        initMemberManagement(modal, teamId);
+                    }
                 } else {
                     throw new Error(result.data?.message || 'Failed to send invitation');
                 }

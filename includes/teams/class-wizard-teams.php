@@ -655,6 +655,7 @@ class WizardTeams
         // Generate token and expiration
         $token = wp_generate_password(32, false);
         $expires_at = date('Y-m-d H:i:s', strtotime('+48 hours'));
+        $formatted_expires_at = date('F j, Y \a\t g:i A', strtotime('+48 hours')); // e.g., "December 17, 2023 at 7:11 PM"
 
         if ($existing_invite) {
             // Update existing invite
@@ -699,9 +700,96 @@ class WizardTeams
             $invite_id = $this->wpdb->insert_id;
         }
 
-        // TODO: Send invitation email
+        // Get team and inviter details for the email
+        $team = $this->get_team($team_id);
+        $inviter = get_userdata($invited_by);
+        
+        // Generate invitation URL
+        $invite_url = add_query_arg([
+            'action' => 'accept_team_invite',
+            'token' => $token
+        ], home_url('/'));
+
+        // Send invitation email
+        $email_manager = \EmailWizard\Includes\Emails\EmailManager::get_instance();
+        $email_result = $email_manager->send_team_invitation($email, [
+            'team_name' => $team->name,
+            'inviter_name' => $inviter->display_name,
+            'inviter_email' => $inviter->user_email,
+            'invite_link' => $invite_url,
+            'role' => $role,
+            'expires_at' => $formatted_expires_at
+        ]);
+
+        if (!$email_result) {
+            error_log('Failed to send team invitation email: ' . $email);
+        }
+
         do_action('wizard_team_invite_created', $invite_id, $team_id, $email, $token);
 
+        return true;
+    }
+
+    /**
+     * Accept a team invitation
+     * 
+     * @param string $token Invitation token
+     * @param int $user_id User ID accepting the invitation
+     * @return bool|WP_Error True on success, WP_Error on failure
+     */
+    public function accept_team_invite($token, $user_id) {
+        // Get and validate the invitation
+        $invite = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->wpdb->prefix}team_invites 
+            WHERE token = %s 
+            AND status = 'pending'
+            AND expires_at > NOW()",
+            $token
+        ));
+
+        if (!$invite) {
+            return new WP_Error('invalid_invite', 'Invalid or expired invitation.');
+        }
+
+        // Verify the user's email matches the invitation
+        $user = get_userdata($user_id);
+        if (!$user || $user->user_email !== $invite->email) {
+            return new WP_Error('email_mismatch', 'User email does not match invitation.');
+        }
+
+        // Add user to team
+        $result = $this->add_team_member($invite->team_id, $user_id, $invite->role);
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        // Mark invitation as accepted
+        $this->wpdb->update(
+            $this->wpdb->prefix . 'team_invites',
+            ['status' => 'accepted'],
+            ['id' => $invite->id],
+            ['%s'],
+            ['%d']
+        );
+
+        // Get team and notify the inviter
+        $team = $this->get_team($invite->team_id);
+        $email_manager = \EmailWizard\Includes\Emails\EmailManager::get_instance();
+        $inviter = get_userdata($invite->invited_by);
+        
+        if ($inviter) {
+            $email_manager->send_team_invitation_accepted($inviter->user_email, [
+                'team_name' => $team->name,
+                'new_member_name' => $user->display_name,
+                'new_member_email' => $user->user_email,
+                'role' => $invite->role
+            ]);
+        }
+
+        // Set this as the user's active team
+        $this->switch_active_team($user_id, $invite->team_id);
+
+        do_action('wizard_team_invite_accepted', $invite->id, $invite->team_id, $user_id);
         return true;
     }
 

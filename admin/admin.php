@@ -1,12 +1,13 @@
 <?php
 
-// Add this near the top of the file with other add_action calls
+// Load admin modules
+require_once __DIR__ . '/email-settings.php';
+
 add_action('admin_enqueue_scripts', 'wizard_admin_scripts');
 
-// Add this function to enqueue the media library scripts
 function wizard_admin_scripts($hook) {
-    // Only load on our settings page
-    if ($hook != 'toplevel_page_wizard-options') {
+    // Only load on our settings pages
+    if (!in_array($hook, ['toplevel_page_wizard-options'])) {
         return;
     }
 
@@ -32,6 +33,14 @@ function wizard_settings_init() {
         'wizard-options'
     );
 
+    // Add settings section for email templates
+    add_settings_section(
+        'wizard_email_templates_section',
+        __('Email Templates', 'wizard'),
+        'wizard_email_templates_section_callback',
+        'wizard-options'
+    );
+
     // Add avatar field
     add_settings_field(
         'wizard_default_avatar',
@@ -54,6 +63,22 @@ function wizard_options_page() {
         'dashicons-email',
         6
     );
+
+    // Add Email Templates submenu
+    add_submenu_page(
+        'wizard-options',
+        __('Email Templates', 'wizard'),
+        __('Email Templates', 'wizard'),
+        'manage_options',
+        'wizard-email-templates',
+        'wizard_render_email_templates_page'
+    );
+
+    // Rename the default submenu
+    global $submenu;
+    if (isset($submenu['wizard-options'])) {
+        $submenu['wizard-options'][0][0] = __('General', 'wizard');
+    }
 }
 add_action('admin_menu', 'wizard_options_page');
 
@@ -131,7 +156,7 @@ function wizard_default_avatar_callback() {
     <?php
 }
 
-// Render the options page
+// Render the general options page
 function wizard_render_options_page() {
     // Check user capabilities
     if (!current_user_can('manage_options')) {
@@ -144,6 +169,26 @@ function wizard_render_options_page() {
             <?php
             settings_fields('wizard_options');
             do_settings_sections('wizard-options');
+            submit_button();
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
+// Render the email templates page
+function wizard_render_email_templates_page() {
+    // Check user capabilities
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <form action="options.php" method="post">
+            <?php
+            settings_fields('wizard_options');
+            do_settings_sections('wizard-email-templates');
             submit_button();
             ?>
         </form>
